@@ -15,7 +15,7 @@ const RULES = [
   {
     icon: VolumeX,
     rule: "1st rule of WWHS?",
-    description: "Don't talk about WWHS.",
+    description: "Don't talk about WWHS?.",
   },
   {
     icon: ImageIcon,
@@ -25,7 +25,7 @@ const RULES = [
   {
     icon: MessageSquarePlus,
     rule: "3rd rule of WWHS?",
-    description: "If this is your first time on WWHS, you have to post.",
+    description: "If this is your first time on WWHS?, you have to post.",
   },
 ];
 
