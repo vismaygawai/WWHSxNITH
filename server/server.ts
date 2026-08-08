@@ -57,15 +57,13 @@ const io = new Server(server, {
 app.set("io", io);
 socketSetup(io);
 
-const mongoUri = process.env.MONGO_URI;
+app.use(async (req, res, next) => {
+  await connectToMongo();
+  next();
+});
 
-if (!mongoUri) {
-  throw new Error(`MONGO_URI is not present in the environment variables`);
-}
-
-connectToMongo(mongoUri)
+connectToMongo()
   .then(async () => {
-    console.log(`Connected to MongoDB`);
     try {
       const Room = (await import("./models/room")).default;
       const count = await Room.countDocuments();
@@ -83,7 +81,7 @@ connectToMongo(mongoUri)
     }
   })
   .catch((e: string) =>
-    console.log(`Error while connecting to database: ${e}`)
+    console.log(`Database connection warning: ${e}`)
   );
 
 app.use(cors({
