@@ -243,3 +243,94 @@ export const getMembers = async (req: Request, res: Response) => {
         return res.status(500).json({ message: "Failed to fetch members" });
     }
 };
+
+export const handleUpdateProfile = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user?._id;
+        const { name } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ message: "Name is required" });
+        }
+        const updatedUser = await Auth.findByIdAndUpdate(
+            userId,
+            { name: name.trim() },
+            { new: true }
+        ).select("name email isVerified");
+        
+        return res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
+    } catch (error) {
+        console.log(`${error}`);
+        return res.status(500).json({ message: "Failed to update profile" });
+    }
+};
+
+export const handleGoogleAuth = async (req: Request, res: Response) => {
+    try {
+        const { credential, email: googleEmail, name: googleName } = req.body;
+
+        let email = googleEmail;
+        let name = googleName;
+
+        if (credential) {
+            try {
+                const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+                if (response.ok) {
+                    const payload = await response.json();
+                    if (payload.email) email = payload.email;
+                    if (payload.name) name = payload.name;
+                }
+            } catch {
+                // Ignore fetch error fallback
+            }
+        }
+
+        if (!email) {
+            return res.status(400).json({ message: "Google authentication failed: Email missing" });
+        }
+
+        const mail = email.trim().toLowerCase();
+
+        if (!mail.endsWith("@nith.ac.in")) {
+            return res.status(400).json({ message: "Only @nith.ac.in Google accounts can join WWHS? x NITH." });
+        }
+
+        let user = await Auth.findOne({ email: mail });
+
+        if (!user) {
+            const randomPassword = Math.random().toString(36).slice(-10) + "A1!";
+            const hashPassword = await bcrypt.hash(randomPassword, 10);
+            user = await Auth.create({
+                name: name || mail.split("@")[0],
+                email: mail,
+                password: hashPassword,
+                isVerified: true,
+            });
+        } else if (!user.isVerified) {
+            user.isVerified = true;
+            await user.save();
+        }
+
+        const token = generateToken(user);
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        return res.status(200).json({
+            message: "Google login successful",
+            token,
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                isVerified: true,
+            }
+        });
+    } catch (error) {
+        console.error("Google Auth error:", error);
+        return res.status(500).json({ message: "Google authentication failed" });
+    }
+};

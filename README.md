@@ -5,22 +5,22 @@
 
 ---
 
-## 🚀 Features
+## Features
 
-- ⚡ **Real-Time WebSockets**: Instant bidirectional messaging powered by Socket.IO.
-- 🎨 **Rich Glassmorphic Design**: Modern DarkVeil WebGL shader background, smooth HSL color palettes, and Framer Motion micro-animations.
-- 🔒 **Institute Domain Security**: Strictly restricted access ensuring only verified `@nith.ac.in` accounts can join.
-- 🖼️ **Image Attachments**: Instant image uploads with on-device compression (`browser-image-compression`).
-- 💻 **Code Sharing**: Dedicated code modal to format and share code blocks seamlessly in chat.
-- 😊 **Emoji Picker**: Built-in dark-themed emoji picker (`emoji-picker-react`).
-- 🟢 **Live Online Presence**: Real-time user online/offline status tracking with indicator rings.
-- ⌨️ **Typing Indicators**: Live typing awareness across active room members.
-- 🔔 **Cross-Room Notifications**: Browser push notifications and customizable audio cues for incoming messages.
-- 📱 **Cross-Platform**: Web SPA + matching React Native / Expo mobile app.
+- **Real-Time WebSockets**: Instant bidirectional messaging powered by Socket.IO.
+- **Rich Glassmorphic Design**: Modern DarkVeil WebGL shader background, smooth HSL color palettes, and Framer Motion micro-animations.
+- **Institute Domain Security**: Strictly restricted access ensuring only verified `@nith.ac.in` accounts can join.
+- **Image Attachments**: Instant image uploads with on-device compression (`browser-image-compression`).
+- **Code Sharing**: Dedicated code modal to format and share code blocks seamlessly in chat.
+- **Emoji Picker**: Built-in dark-themed emoji picker (`emoji-picker-react`).
+- **Live Online Presence**: Real-time user online/offline status tracking with indicator rings.
+- **Typing Indicators**: Live typing awareness across active room members.
+- **Cross-Room Notifications**: Browser push notifications and customizable audio cues for incoming messages.
+- **Cross-Platform**: Web SPA + matching React Native / Expo mobile app.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 - **Framework**: [React 19](https://react.dev/) + [Vite 7](https://vitejs.dev/)
@@ -39,7 +39,7 @@
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 WWHSxNITH/
@@ -66,15 +66,15 @@ WWHSxNITH/
 
 ---
 
-## 📜 The 3 Rules of WWHS?
+## The 3 Rules of WWHS?
 
-1. 🔇 **1st rule of WWHS?** — *Don't talk about WWHS.*
-2. 🖼️ **2nd rule of WWHS?** — *If your group icon isn't cursed, you're doing it wrong.*
-3. 💬 **3rd rule of WWHS?** — *If this is your first time on WWHS, you have to post.*
+1. **1st rule of WWHS?** — *Don't talk about WWHS.*
+2. **2nd rule of WWHS?** — *If your group icon isn't cursed, you're doing it wrong.*
+3. **3rd rule of WWHS?** — *If this is your first time on WWHS, you have to post.*
 
 ---
 
-## ⚙️ Getting Started
+## Getting Started
 
 ### Prerequisites
 - **Node.js** (v18 or higher)
@@ -123,7 +123,7 @@ WWHSxNITH/
 
 ---
 
-## 👨‍💻 Developer & License
+## Developer & License
 
 - **Developer**: [Vismay Gawai](https://github.com/vismaygawai)
 - **Repository**: [WWHSxNITH](https://github.com/vismaygawai/WWHSxNITH)

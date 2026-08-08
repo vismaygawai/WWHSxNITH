@@ -14,6 +14,8 @@ export const Route = createFileRoute("/login")({
 
 type Mode = "signin" | "signup";
 
+const GOOGLE_CLIENT_ID = "182255210945-ecnl2fl1p6hn74d3dlbr4lo28h5vtnmt.apps.googleusercontent.com";
+
 function isAllowedEmail(email: string) {
   return email.trim().toLowerCase().endsWith(`@${ALLOWED_DOMAIN}`);
 }
@@ -65,7 +67,6 @@ function PasswordInput({
   );
 }
 
-
 function Login() {
   const nav = useNavigate();
   const { user, ready, login, signup } = useAuth();
@@ -81,6 +82,85 @@ function Login() {
   useEffect(() => {
     if (ready && user) nav({ to: "/rooms", replace: true });
   }, [nav, ready, user]);
+
+  useEffect(() => {
+    const handleGoogleResponse = async (response: any) => {
+      if (response.credential) {
+        setBusy(true);
+        setError(null);
+        try {
+          const { data } = await api.post("/auth/google", { credential: response.credential });
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
+            window.dispatchEvent(new Event("storage"));
+            toast.success("Signed in with Google!");
+            nav({ to: "/rooms", replace: true });
+          }
+        } catch (err: any) {
+          setError(err.response?.data?.message || "Google Sign-In failed.");
+        } finally {
+          setBusy(false);
+        }
+      }
+    };
+
+    const setupGoogle = () => {
+      if (typeof window !== "undefined" && (window as any).google?.accounts?.id) {
+        (window as any).google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleResponse,
+        });
+      }
+    };
+
+    setupGoogle();
+    const interval = setInterval(setupGoogle, 1000);
+    return () => clearInterval(interval);
+  }, [nav]);
+
+  async function handleGoogleSignIn() {
+    if (busy) return;
+    setError(null);
+
+    const windowGoogle = (window as any).google;
+
+    if (windowGoogle?.accounts?.oauth2) {
+      const client = windowGoogle.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: "email profile openid",
+        callback: async (tokenResponse: any) => {
+          if (tokenResponse.access_token) {
+            setBusy(true);
+            try {
+              const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+                headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+              });
+              const profile = await res.json();
+              const { data } = await api.post("/auth/google", { email: profile.email, name: profile.name });
+              if (data.token) {
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("user", JSON.stringify(data.user));
+                window.dispatchEvent(new Event("storage"));
+                toast.success("Signed in with Google!");
+                nav({ to: "/rooms", replace: true });
+              }
+            } catch (err: any) {
+              setError(err.response?.data?.message || "Google Sign-In failed.");
+            } finally {
+              setBusy(false);
+            }
+          }
+        },
+      });
+      client.requestAccessToken();
+      return;
+    }
+
+    if (windowGoogle?.accounts?.id) {
+      windowGoogle.accounts.id.prompt();
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -240,7 +320,29 @@ function Login() {
                   <span className="text-primary">{SAMPLE_EMAIL}</span>.
                 </p>
 
-                <div className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
+                {/* Custom Styled Google Auth Button - Matches Project A UI 100% */}
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={handleGoogleSignIn}
+                  className="mt-5 flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white hover:bg-white/10 backdrop-blur-sm transition-all shadow-sm active:scale-[0.99] disabled:opacity-60"
+                >
+                  <svg className="size-4 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.28v3.15C3.26 21.3 7.31 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.28C.46 8.21 0 10.05 0 12s.46 3.79 1.28 5.42l4-3.15z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.28 6.58l4 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                  </svg>
+                  <span>Continue with Google</span>
+                </button>
+
+                <div className="mt-4 flex items-center gap-3 text-xs text-white/35">
+                  <span className="h-px flex-1 bg-white/10" />
+                  <span>OR</span>
+                  <span className="h-px flex-1 bg-white/10" />
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
                   {(["signin", "signup"] as Mode[]).map((m) => (
                     <button
                       key={m}

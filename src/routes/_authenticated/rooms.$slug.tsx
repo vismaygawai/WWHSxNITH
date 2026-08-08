@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, Loader2, SendHorizonal, Image as ImageIcon,
-  Code2, Smile, Menu, Paperclip, X,
+  Code2, Smile, Menu, Paperclip, X, Trash2, ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,7 +16,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { ImageModal } from "@/components/ImageModal";
 import { CodeModal } from "@/components/CodeModal";
 import RoomSidebar from "@/components/RoomSidebar";
-import { BRAND_NAME } from "@/lib/brand";
+import { BRAND_NAME, isAdminEmail } from "@/lib/brand";
 
 export const Route = createFileRoute("/_authenticated/rooms/$slug")({
   component: RoomChat,
@@ -94,6 +94,7 @@ function RoomChat() {
   const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [imagePreview, setImagePreview] = useState<{ file: File; url: string } | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [viewImage, setViewImage] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -175,11 +176,16 @@ function RoomChat() {
       setOnlineUsers(new Set(ids));
     };
 
+    const handleMessageDeleted = ({ messageId }: { messageId: string }) => {
+      setMessages((prev) => prev.filter((m) => m._id !== messageId));
+    };
+
     socket.on("receive_message", handleMessage);
     socket.on("received_message", handleMessage);
     socket.on("typing_update", handleTyping);
     socket.on("presence_update", handlePresence);
     socket.on("online_users", handleOnlineList);
+    socket.on("message_deleted", handleMessageDeleted);
 
     return () => {
       socket.off("receive_message", handleMessage);
@@ -187,6 +193,7 @@ function RoomChat() {
       socket.off("typing_update", handleTyping);
       socket.off("presence_update", handlePresence);
       socket.off("online_users", handleOnlineList);
+      socket.off("message_deleted", handleMessageDeleted);
     };
   }, [roomId, user]);
 
@@ -245,35 +252,49 @@ function RoomChat() {
     setSending(false);
   }
 
+  async function handleDeleteMsg(msgId: string) {
+    try {
+      await api.delete(`/chat/${msgId}`);
+      setMessages((prev) => prev.filter((m) => m._id !== msgId));
+      toast.success("Message deleted");
+    } catch {
+      toast.error("Failed to delete message");
+    }
+  }
+
   // Send image
   async function handleImageUpload(file: File) {
-    if (!roomId || !user) return;
+    if (!roomId || !user || uploadingImage) return;
 
-    // Compress before upload
-    let compressedFile = file;
-    if (file.type.startsWith("image/") && !file.type.includes("svg")) {
-      try {
-        compressedFile = await imageCompression(file, {
-          maxSizeMB: 0.5,
-          maxWidthOrHeight: 1920,
-          useWebWorker: true,
-        });
-      } catch {
-        // If compression fails, use original
-      }
-    }
-
-    const formData = new FormData();
-    formData.append("image", compressedFile);
-
+    setUploadingImage(true);
     try {
+      // Compress before upload
+      let compressedFile = file;
+      if (file.type.startsWith("image/") && !file.type.includes("svg")) {
+        try {
+          compressedFile = await imageCompression(file, {
+            maxSizeMB: 0.5,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+          });
+        } catch {
+          // If compression fails, use original
+        }
+      }
+
+      const formData = new FormData();
+      formData.append("image", compressedFile);
+
       await api.post(`/chat/${roomId}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-    } catch {
-      toast.error("Failed to upload image");
+      setImagePreview(null);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Failed to upload image";
+      toast.error(msg);
+    } finally {
+      setUploadingImage(false);
     }
-    setImagePreview(null);
   }
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -372,6 +393,10 @@ function RoomChat() {
             const mine = senderId(m) === user?._id;
             const name = senderName(m);
             const email = senderEmail(m);
+            const isSenderAdmin = isAdminEmail(email);
+            const currentUserIsAdmin = isAdminEmail(user?.email);
+            const canDelete = mine || currentUserIsAdmin;
+
             return (
               <div key={m._id} className={`group flex gap-3 ${mine ? "flex-row-reverse" : ""}`}>
                 <img
@@ -380,16 +405,31 @@ function RoomChat() {
                   className={`size-8 shrink-0 rounded-full object-cover bg-primary/10 ${onlineUsers.has(senderId(m)) ? "ring-2 ring-emerald-400/60" : ""}`}
                 />
                 <div className={`max-w-[min(34rem,80%)] ${mine ? "text-right" : ""}`}>
-                  <div className="flex items-center gap-2 text-[11px] text-white/40" style={{ justifyContent: mine ? "flex-end" : "flex-start" }}>
+                  <div className="flex items-center gap-1.5 text-[11px] text-white/40" style={{ justifyContent: mine ? "flex-end" : "flex-start" }}>
                     <span className="font-medium text-white/60">{mine ? "You" : name}</span>
+                    {isSenderAdmin && (
+                      <span className="inline-flex items-center gap-0.5 rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-semibold text-amber-400 border border-amber-500/30">
+                        <ShieldCheck className="size-2.5" /> Admin
+                      </span>
+                    )}
                     <span>{timeLabel(m.createdAt)}</span>
                     {m._status === "sending" && <Loader2 className="size-3 animate-spin text-white/30" />}
                     {m._status === "error" && <span className="text-destructive text-[10px]">Failed</span>}
+                    {canDelete && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteMsg(m._id)}
+                        title="Delete message"
+                        className="ml-1 text-white/20 opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive p-0.5"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    )}
                   </div>
-                  {m.image && (
-                    <button type="button" onClick={() => setViewImage(m.image!)} className="mt-1 block">
+                  {(m.image || (m.imageURL && m.imageURL.trim().length > 1)) && (
+                    <button type="button" onClick={() => setViewImage(m.image || m.imageURL!)} className="mt-1 block">
                       <img
-                        src={m.image}
+                        src={m.image || m.imageURL}
                         alt=""
                         className={`max-w-[16rem] rounded-2xl border border-border object-cover cursor-pointer hover:opacity-90 transition-opacity ${mine ? "rounded-tr-md" : "rounded-tl-md"}`}
                       />
@@ -451,10 +491,17 @@ function RoomChat() {
               </button>
               <button
                 type="button"
+                disabled={uploadingImage}
                 onClick={() => handleImageUpload(imagePreview.file)}
-                className="mt-2 w-full rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+                className="mt-2 w-full flex items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50 transition-opacity"
               >
-                Send Image
+                {uploadingImage ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" /> Uploading…
+                  </>
+                ) : (
+                  "Send Image"
+                )}
               </button>
             </div>
           </motion.div>

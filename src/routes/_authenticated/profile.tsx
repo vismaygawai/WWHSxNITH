@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { LogOut, Check, Sparkles, User as UserIcon } from "lucide-react";
+import { LogOut, Check, ShieldCheck, UserCheck, Save, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
-import { BRAND_NAME } from "@/lib/brand";
+import { BRAND_NAME, isAdminEmail } from "@/lib/brand";
+import api from "@/services/api";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   component: ProfilePage,
@@ -24,8 +25,17 @@ function ProfilePage() {
   const qc = useQueryClient();
   const nav = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
+  const [savingName, setSavingName] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string>(user?.email || "Felix");
-  const [customName, setCustomName] = useState<string>(user?.name || "");
+  const [nameInput, setNameInput] = useState<string>(user?.name || "");
+
+  const isAdmin = isAdminEmail(user?.email);
+
+  useEffect(() => {
+    if (user?.name) {
+      setNameInput(user.name);
+    }
+  }, [user?.name]);
 
   useEffect(() => {
     const savedAvatar = localStorage.getItem(`avatar_seed_${user?._id}`);
@@ -41,6 +51,30 @@ function ProfilePage() {
     if (user?._id) {
       localStorage.setItem(`avatar_seed_${user._id}`, seed);
       toast.success("Avatar updated!");
+    }
+  }
+
+  async function handleSaveName(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nameInput.trim()) {
+      toast.error("Name cannot be empty");
+      return;
+    }
+    setSavingName(true);
+    try {
+      const { data } = await api.put("/auth/profile", { name: nameInput.trim() });
+      toast.success("Name updated successfully!");
+      // Update local storage user state
+      if (user) {
+        const updatedUser = { ...user, name: nameInput.trim() };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        window.dispatchEvent(new Event("storage"));
+      }
+    } catch (error: any) {
+      const msg = error.response?.data?.message || "Failed to update name";
+      toast.error(msg);
+    } finally {
+      setSavingName(false);
     }
   }
 
@@ -81,9 +115,16 @@ function ProfilePage() {
           <div className="text-center sm:text-left min-w-0">
             <h2 className="text-xl font-semibold text-white truncate">{user?.name || "Member"}</h2>
             <p className="text-sm text-white/50 truncate mt-0.5">{user?.email}</p>
-            <span className="inline-flex items-center gap-1 mt-2 rounded-full bg-primary/15 px-3 py-1 text-[11px] font-medium text-primary ring-1 ring-primary/25">
-              <Sparkles className="size-3" /> NITH Member
-            </span>
+            
+            {isAdmin ? (
+              <span className="inline-flex items-center gap-1.5 mt-2 rounded-full bg-amber-500/15 px-3 py-1 text-[11px] font-semibold text-amber-400 ring-1 ring-amber-500/30">
+                <ShieldCheck className="size-3.5" /> Admin • {BRAND_NAME}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 mt-2 rounded-full bg-primary/15 px-3 py-1 text-[11px] font-medium text-primary ring-1 ring-primary/25">
+                <UserCheck className="size-3.5" /> NITH Member
+              </span>
+            )}
           </div>
         </div>
 
@@ -123,19 +164,28 @@ function ProfilePage() {
           </div>
         </div>
 
-        {/* Form Fields */}
-        <div className="space-y-4 pt-2">
+        {/* Editable Name Form */}
+        <form onSubmit={handleSaveName} className="space-y-4 pt-2">
           <div>
             <label className="block text-xs font-medium uppercase tracking-wider text-white/45 mb-1.5">
               Full Name
             </label>
-            <div className="relative">
+            <div className="flex gap-2">
               <input
                 type="text"
-                readOnly
-                value={user?.name || ""}
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none cursor-default"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                placeholder="Enter your name"
+                className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
               />
+              <button
+                type="submit"
+                disabled={savingName || nameInput.trim() === user?.name}
+                className="inline-flex items-center gap-1.5 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-95 transition-opacity disabled:opacity-40"
+              >
+                {savingName ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+                Save
+              </button>
             </div>
           </div>
 
@@ -143,16 +193,14 @@ function ProfilePage() {
             <label className="block text-xs font-medium uppercase tracking-wider text-white/45 mb-1.5">
               Institute Email
             </label>
-            <div className="relative">
-              <input
-                type="email"
-                readOnly
-                value={user?.email || ""}
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none cursor-default"
-              />
-            </div>
+            <input
+              type="email"
+              readOnly
+              value={user?.email || ""}
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70 outline-none cursor-default opacity-80"
+            />
           </div>
-        </div>
+        </form>
 
         {/* Action Buttons */}
         <div className="pt-4 border-t border-white/10 flex items-center justify-between">

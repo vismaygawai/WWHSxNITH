@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import api from "@/services/api";
-import { BRAND_NAME } from "@/lib/brand";
+import { BRAND_NAME, isAdminEmail } from "@/lib/brand";
 
 export const Route = createFileRoute("/_authenticated/members")({
   component: Members,
@@ -12,10 +12,6 @@ interface Member {
   _id: string;
   name: string;
   email: string;
-}
-
-function initials(name: string) {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join("");
 }
 
 function Members() {
@@ -41,11 +37,24 @@ function Members() {
           {members.map((m) => {
             const savedSeed = localStorage.getItem(`avatar_seed_${m._id}`);
             const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(savedSeed || m.email)}`;
+            const isAdmin = isAdminEmail(m.email);
             return (
-              <div key={m._id} className="flex items-center gap-3 rounded-3xl border border-border bg-card px-4 py-3.5 backdrop-blur-xl">
+              <div
+                key={m._id}
+                className={`flex items-center gap-3 rounded-3xl border px-4 py-3.5 backdrop-blur-xl ${
+                  isAdmin ? "border-amber-500/30 bg-amber-500/5" : "border-white/10 bg-card"
+                }`}
+              >
                 <img src={avatarUrl} alt="" className="size-10 rounded-full object-cover bg-primary/10" />
-                <div className="min-w-0">
-                  <div className="font-medium text-white truncate">{m.name}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-white truncate">{m.name}</span>
+                    {isAdmin && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-400 ring-1 ring-amber-500/30 shrink-0">
+                        <ShieldCheck className="size-3" /> Admin
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-white/45 truncate">{m.email}</div>
                 </div>
               </div>

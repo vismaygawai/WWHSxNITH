@@ -129,4 +129,43 @@ export const getChatHistory = async (req: Request, res: Response) => {
         console.log(`Error in getChatHistory: ${error}`);
         return res.status(500).json({ message: "Error fetching chat history" });
     }
-}
+};
+
+const ADMIN_EMAILS = [
+  "25bph049@nith.ac.in",
+  "25bph050@nith.ac.in",
+  "25bph045@nith.ac.in",
+  "25bph035@nith.ac.in",
+];
+
+export const deleteChat = async (req: Request, res: Response) => {
+    try {
+        const { messageId } = req.params;
+        const userId = req.user?._id;
+        const userEmail = (req.user as any)?.email;
+
+        const chat = await Chat.findById(messageId);
+        if (!chat) {
+            return res.status(404).json({ message: "Message not found" });
+        }
+
+        const isSender = chat.sender.toString() === userId?.toString();
+        const isAdmin = userEmail && ADMIN_EMAILS.includes(userEmail.toLowerCase());
+
+        if (!isSender && !isAdmin) {
+            return res.status(403).json({ message: "Not authorized to delete this message" });
+        }
+
+        await Chat.findByIdAndDelete(messageId);
+
+        const io = req.app.get("io");
+        if (io) {
+            io.emit("message_deleted", { messageId, room: chat.room });
+        }
+
+        return res.status(200).json({ message: "Message deleted successfully", messageId });
+    } catch (error) {
+        console.error(`Error deleting message: ${error}`);
+        return res.status(500).json({ message: "Failed to delete message" });
+    }
+};
