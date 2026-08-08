@@ -7,16 +7,16 @@
 
 ## Features
 
-- **Real-Time WebSockets**: Instant bidirectional messaging powered by Socket.IO.
+- **Google Authentication**: One-tap "Continue with Google" sign-in strictly restricted to `@nith.ac.in` institute accounts.
+- **Real-Time WebSockets**: Instant bidirectional messaging powered by Socket.IO with automatic room seeding (`#general`, `#tech-chat`, `#announcements`, `#random`).
+- **Admin Moderation**: Designated Admin accounts (`25bph049@nith.ac.in`, `25bph050@nith.ac.in`, `25bph045@nith.ac.in`, `25bph035@nith.ac.in`) with real-time message deletion authority and Gold Admin badges.
+- **Editable Profile & Avatars**: Customizable display names and DiceBear avatar gallery presets with local seed persistence.
+- **Fail-Safe Image Uploads**: Image sharing with on-device compression (`browser-image-compression`), upload locking, and dual-mode S3 / Base64 Data URI fallback.
 - **Rich Glassmorphic Design**: Modern DarkVeil WebGL shader background, smooth HSL color palettes, and Framer Motion micro-animations.
-- **Institute Domain Security**: Strictly restricted access ensuring only verified `@nith.ac.in` accounts can join.
-- **Image Attachments**: Instant image uploads with on-device compression (`browser-image-compression`).
-- **Code Sharing**: Dedicated code modal to format and share code blocks seamlessly in chat.
+- **Code Sharing & Formatting**: Dedicated code modal to format and share code blocks seamlessly in chat.
 - **Emoji Picker**: Built-in dark-themed emoji picker (`emoji-picker-react`).
-- **Live Online Presence**: Real-time user online/offline status tracking with indicator rings.
-- **Typing Indicators**: Live typing awareness across active room members.
+- **Live Online Presence & Typing**: Real-time user online/offline status tracking and live typing indicators.
 - **Cross-Room Notifications**: Browser push notifications and customizable audio cues for incoming messages.
-- **Cross-Platform**: Web SPA + matching React Native / Expo mobile app.
 
 ---
 
@@ -33,8 +33,8 @@
 - **Server**: Node.js + Express
 - **Real-time**: Socket.IO
 - **Database**: MongoDB Atlas + Mongoose
-- **Authentication**: JWT (JSON Web Tokens) with 7-day expiration + bcrypt hashing
-- **File Storage**: AWS S3 Bucket
+- **Authentication**: JWT (JSON Web Tokens) + Google Identity OAuth 2.0 + bcrypt hashing
+- **File Storage**: AWS S3 Bucket with fail-safe Data URI fallback
 - **Security**: Helmet, Compression, Express Rate Limit, Morgan
 
 ---
@@ -79,6 +79,7 @@ WWHSxNITH/
 ### Prerequisites
 - **Node.js** (v18 or higher)
 - **MongoDB Atlas** database URI
+- **Google OAuth 2.0 Client Credentials** (for Google Sign-In)
 - **AWS S3** bucket (optional, for image uploads)
 - **Gmail App Password** (for sending verification emails)
 
@@ -113,6 +114,8 @@ WWHSxNITH/
    MAIL_USER=your_email@gmail.com
    MAIL_PASS=your_16_character_app_password
    FRONTEND_PROD_URL=http://localhost:5173
+   GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
    ```
 
 4. **Run Development Server**:
