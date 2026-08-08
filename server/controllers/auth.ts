@@ -6,6 +6,7 @@ import { sendEmail } from "../services/sendEmail";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { verifyAcc } from "../services/verifyAcc";
+import bcrypt from "bcrypt";
 
 dotenv.config();
 
@@ -82,19 +83,36 @@ export const handleUserLogIn = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "All the fields are required" });
   }
   try {
-    const existingUser = await Auth.findOne({ email });
+    const mail = email.trim().toLowerCase();
+    const existingUser = await Auth.findOne({ email: mail });
 
     if (!existingUser) {
       return res.status(400).json({ message: "You don't have an account, sign up first" });
     }
 
     if (!existingUser.isVerified) {
-      return res.status(400).json({ message: "Account is unverified" });
+      return res.status(400).json({ message: "Account is unverified. Check your email inbox." });
     }
 
-    const inputhash = hashPassword(password, existingUser.salt);
+    let isMatch = false;
+    if (existingUser.salt) {
+      try {
+        const inputhash = hashPassword(password, existingUser.salt);
+        isMatch = inputhash === existingUser.password;
+      } catch {
+        isMatch = false;
+      }
+    }
 
-    if (inputhash !== existingUser.password) {
+    if (!isMatch && existingUser.password) {
+      try {
+        isMatch = await bcrypt.compare(password, existingUser.password);
+      } catch {
+        isMatch = false;
+      }
+    }
+
+    if (!isMatch) {
       return res.status(400).json({ message: "Incorrect password" });
     }
 
@@ -102,23 +120,24 @@ export const handleUserLogIn = async (req: Request, res: Response) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({
-      message: "Logged in success",
+      message: "Logged in successfully",
       token,
       user: {
         _id: existingUser._id,
         name: existingUser.name,
         email: existingUser.email,
+        isVerified: true,
       },
     });
   } catch (error) {
-    console.log(`${error}`);
-    throw new Error(`While logging in`);
+    console.error("Error in handleUserLogIn:", error);
+    return res.status(500).json({ message: "Failed to log in. Please try again." });
   }
 };
 
