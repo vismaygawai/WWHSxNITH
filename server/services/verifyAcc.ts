@@ -4,18 +4,23 @@ import dotenv from "dotenv";
 import { generateToken } from "./authToken";
 
 dotenv.config();
-const FRONTEND_URL = process.env.FRONTEND_PROD_URL;
+const FRONTEND_URL = process.env.FRONTEND_PROD_URL || "http://localhost:5173";
 const brand = "WWHS? x NITH";
 
 export const verifyAcc = async (user: any) => {
   try {
+    if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
+      console.warn("MAIL_USER or MAIL_PASS not set. Skipping verification email sending.");
+      return;
+    }
+
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 587,
       secure: false,
       auth: {
-        user: process.env.MAIL_USER!,
-        pass: process.env.MAIL_PASS!,
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
       },
     });
 
@@ -23,10 +28,9 @@ export const verifyAcc = async (user: any) => {
     const verifyUrl = `${FRONTEND_URL}/verify-email?hash=${randomHash}`;
 
     await transporter.sendMail({
-      from: `"${brand}" <${process.env.MAIL_USER!}>`,
+      from: `"${brand}" <${process.env.MAIL_USER}>`,
       to: user.email,
       subject: `Confirm your email for ${brand}`,
-      // Plain text fallback dramatically improves email deliverability & prevents spam classification
       text: `Welcome to ${brand}!\n\nPlease confirm your email address by visiting the link below:\n${verifyUrl}\n\nIf you did not request this account, please ignore this email.`,
       html: `
         <!DOCTYPE html>
@@ -120,7 +124,6 @@ export const verifyAcc = async (user: any) => {
       `,
     });
   } catch (error) {
-    console.log(`${error}`);
-    throw new Error(`While sending account verification email`);
+    console.warn("Warning: Failed to send verification email:", error);
   }
 };

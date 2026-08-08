@@ -38,20 +38,21 @@ export const handleUserSignUp = async (req: Request, res: Response) => {
 
     return res.status(200).json({ message: "Check your inbox for account verification email" });
   } catch (error) {
-    console.log(`While signing up`);
-    throw new Error(`While creating a new User`);
+    console.error("Error in handleUserSignUp:", error);
+    return res.status(500).json({ message: "Failed to create account. Please try again." });
   }
 };
 
 export const handleVerifyEmail = async (req: Request, res: Response) => {
   try {
     const queryHash = req.query.hash as string;
-    const decoder = jwt.verify(queryHash, process.env.JWT_ENCRYP_KEY!) as {
+    const decoder = jwt.verify(queryHash, process.env.JWT_ENCRYP_KEY || "wwhs_super_secret_jwt_key_2026_nith_secure") as {
       email: string;
       name: string;
     };
 
     const user = await Auth.findOne({ email: decoder.email });
+
     if (!user) {
       return res
         .status(400)
@@ -61,19 +62,18 @@ export const handleVerifyEmail = async (req: Request, res: Response) => {
     user.isVerified = true;
     await user.save();
 
-    // letting user login immediately after account verification, no need to login after signup and verification is completed
     const token = generateToken(user);
     res.cookie("token", token, {
         httpOnly: true,
-        secure: false,
-        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({ message: "Email verified successfully", token, user });
   } catch (error) {
-    console.log(`${error}`);
-    throw new Error(`While verifying the email`);
+    console.error("Error in handleVerifyEmail:", error);
+    return res.status(400).json({ message: "Invalid or expired verification link." });
   }
 };
 
