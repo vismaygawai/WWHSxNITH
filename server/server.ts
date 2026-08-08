@@ -27,6 +27,7 @@ import { roomRoute } from "./routes/room";
 import { featureRoute } from "./routes/feature";
 import { blogRoute } from "./routes/blog";
 import { projectRoute } from "./routes/project";
+import Room from "./models/room";
 
 // middlewares
 import { allowOnlyAuthenticatedUser } from "./middlewares/auth";
@@ -69,7 +70,6 @@ app.use(async (req, res, next) => {
 connectToMongo()
   .then(async () => {
     try {
-      const Room = (await import("./models/room")).default;
       const count = await Room.countDocuments();
       if (count === 0) {
         await Room.insertMany([
