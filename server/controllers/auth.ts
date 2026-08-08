@@ -6,7 +6,7 @@ import { sendEmail } from "../services/sendEmail";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { verifyAcc } from "../services/verifyAcc";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 dotenv.config();
 
