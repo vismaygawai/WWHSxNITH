@@ -41,52 +41,54 @@ const allowedOrigins = [
   process.env.FRONTEND_PROD_URL,
 ].filter(Boolean) as string[];
 
-const io = new Server(server, {
-  pingTimeout: 10000,
-  pingInterval: 5000,
-  cors: {
-    origin: (origin, callback) => {
-      if (!origin || process.env.NODE_ENV !== "production") return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log("Socket blocked by CORS:", origin);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST"],
-    credentials: true,
-  }
-});
-
-app.set("io", io);
-socketSetup(io);
-
 app.use(async (req, res, next) => {
   await connectToMongo();
   next();
 });
 
-connectToMongo()
-  .then(async () => {
-    try {
-      const count = await Room.countDocuments();
-      if (count === 0) {
-        await Room.insertMany([
-          { roomId: "general", title: "General", description: "Main room for general discussions", members: [] },
-          { roomId: "tech-chat", title: "Tech Chat", description: "Discuss tech, code, tools, and projects", members: [] },
-          { roomId: "announcements", title: "Announcements", description: "Official updates and announcements", members: [] },
-          { roomId: "random", title: "Random", description: "Meme sharing and casual banter", members: [] },
-        ]);
-        console.log("Seeded default chat rooms: general, tech-chat, announcements, random");
-      }
-    } catch (err) {
-      console.error("Error seeding default rooms:", err);
+if (!process.env.VERCEL) {
+  const io = new Server(server, {
+    pingTimeout: 10000,
+    pingInterval: 5000,
+    cors: {
+      origin: (origin, callback) => {
+        if (!origin || process.env.NODE_ENV !== "production") return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          console.log("Socket blocked by CORS:", origin);
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
+      methods: ["GET", "POST"],
+      credentials: true,
     }
-  })
-  .catch((e: string) =>
-    console.log(`Database connection warning: ${e}`)
-  );
+  });
+
+  app.set("io", io);
+  socketSetup(io);
+
+  connectToMongo()
+    .then(async () => {
+      try {
+        const count = await Room.countDocuments();
+        if (count === 0) {
+          await Room.insertMany([
+            { roomId: "general", title: "General", description: "Main room for general discussions", members: [] },
+            { roomId: "tech-chat", title: "Tech Chat", description: "Discuss tech, code, tools, and projects", members: [] },
+            { roomId: "announcements", title: "Announcements", description: "Official updates and announcements", members: [] },
+            { roomId: "random", title: "Random", description: "Meme sharing and casual banter", members: [] },
+          ]);
+          console.log("Seeded default chat rooms: general, tech-chat, announcements, random");
+        }
+      } catch (err) {
+        console.error("Error seeding default rooms:", err);
+      }
+    })
+    .catch((e: string) =>
+      console.log(`Database connection warning: ${e}`)
+    );
+}
 
 app.use(cors({
   origin: (origin, callback) => {
