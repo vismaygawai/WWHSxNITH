@@ -6,13 +6,16 @@ dotenv.config();
 
 let s3Client: S3Client | null = null;
 
-if (process.env.AWS_ACCESS_KEY && process.env.AWS_SECRET_ACCESS_KEY) {
+const accessKey = process.env.MY_AWS_ACCESS_KEY || process.env.AWS_ACCESS_KEY;
+const secretKey = process.env.MY_AWS_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY;
+
+if (accessKey && secretKey) {
     try {
         s3Client = new S3Client({
             region: process.env.AWS_S3_REGION || "ap-south-1",
             credentials: {
-                accessKeyId: process.env.AWS_ACCESS_KEY,
-                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+                accessKeyId: accessKey,
+                secretAccessKey: secretKey,
             },
         });
     } catch {
