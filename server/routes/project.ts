@@ -1,6 +1,6 @@
 import express from "express";
-import { getAllProjects, postAProject, getProjectById, deleteProjectById, editProjectById } from "../controllers/project"
-import { allowOnlyAuthenticatedUser } from "../middlewares/auth";
+import { getAllProjects, postAProject, getProjectById, deleteProjectById, editProjectById } from "../controllers/project.js"
+import { allowOnlyAuthenticatedUser } from "../middlewares/auth.js";
 
 export const projectRoute = express.Router()
 

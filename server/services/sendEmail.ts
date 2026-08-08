@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { generateToken } from "../services/authToken";
+import { generateToken } from "../services/authToken.js";
 import dotenv from "dotenv";
 
 dotenv.config();

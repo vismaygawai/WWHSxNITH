@@ -1,5 +1,5 @@
 import express from "express";
-import { sendChat, getChatHistory, deleteChat } from "../controllers/chat";
+import { sendChat, getChatHistory, deleteChat } from "../controllers/chat.js";
 import multer from "multer";
 
 export const chatRoute = express.Router();

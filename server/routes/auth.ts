@@ -1,7 +1,7 @@
 import express from "express";
-import { handleUserSignUp, handleUserLogIn, handlerForgetPassViaEmail, handleForgetPassViaOld, changeUserPass, handleVerifyEmail, handleUserLogOut, getMembers, handleUpdateProfile, handleGoogleAuth } from "../controllers/auth";
-import { savePushToken } from "../controllers/notification";
-import { allowOnlyAuthenticatedUser } from "../middlewares/auth";
+import { handleUserSignUp, handleUserLogIn, handlerForgetPassViaEmail, handleForgetPassViaOld, changeUserPass, handleVerifyEmail, handleUserLogOut, getMembers, handleUpdateProfile, handleGoogleAuth } from "../controllers/auth.js";
+import { savePushToken } from "../controllers/notification.js";
+import { allowOnlyAuthenticatedUser } from "../middlewares/auth.js";
 
 export const authRoute = express.Router();
 

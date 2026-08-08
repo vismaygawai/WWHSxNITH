@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
-import { getUsersBlogsHandler, getABlogHandler, editBlogHandler, getBlogsHandler, deleteBlogHandler, postBlogHandler, uploadBlogImageHandler } from "../controllers/blog"; 
-import { allowOnlyAuthenticatedUser } from "../middlewares/auth";
+import { getUsersBlogsHandler, getABlogHandler, editBlogHandler, getBlogsHandler, deleteBlogHandler, postBlogHandler, uploadBlogImageHandler } from "../controllers/blog.js"; 
+import { allowOnlyAuthenticatedUser } from "../middlewares/auth.js";
 
 const upload = multer({ storage: multer.memoryStorage() });
 

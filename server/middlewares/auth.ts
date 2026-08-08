@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyToken } from "../services/authToken";
-import Auth from "../models/auth";
+import { verifyToken } from "../services/authToken.js";
+import Auth from "../models/auth.js";
 
 export const allowOnlyAuthenticatedUser = async (req: Request, res: Response, next: NextFunction) => {
     let token = req.cookies?.token;

@@ -1,6 +1,6 @@
 import express from "express";
-import { handleCreateRoom, handleRoomInfo, handleJoining, handleJoinedRooms, handleGetAllRooms } from "../controllers/room";
-import { allowOnlyAuthenticatedUser } from "../middlewares/auth";
+import { handleCreateRoom, handleRoomInfo, handleJoining, handleJoinedRooms, handleGetAllRooms } from "../controllers/room.js";
+import { allowOnlyAuthenticatedUser } from "../middlewares/auth.js";
 
 export const roomRoute = express.Router();
 

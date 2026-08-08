@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Project from "../models/project";
+import Project from "../models/project.js";
 
 
 // get api endpoint for all the projects

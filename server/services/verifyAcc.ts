@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-import { generateToken } from "./authToken";
+import { generateToken } from "./authToken.js";
 
 dotenv.config();
 const FRONTEND_URL = process.env.FRONTEND_PROD_URL || "http://localhost:5173";

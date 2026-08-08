@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { uploadToS3 } from "../services/s3Bucket";
-import Chat from "../models/chat";
-import Room from "../models/room";
+import { uploadToS3 } from "../services/s3Bucket.js";
+import Chat from "../models/chat.js";
+import Room from "../models/room.js";
 import { isValidObjectId } from "mongoose";
 import { Expo } from "expo-server-sdk";
 

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Auth from "../models/auth";
+import Auth from "../models/auth.js";
 
 export const savePushToken = async (req: Request, res: Response) => {
     const { token } = req.body;

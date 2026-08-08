@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import Auth from "../models/auth";
-import { generateToken } from "../services/authToken";
-import { generateSalt, hashPassword } from "../services/authUtils";
-import { sendEmail } from "../services/sendEmail";
+import Auth from "../models/auth.js";
+import { generateToken } from "../services/authToken.js";
+import { generateSalt, hashPassword } from "../services/authUtils.js";
+import { sendEmail } from "../services/sendEmail.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { verifyAcc } from "../services/verifyAcc";
+import { verifyAcc } from "../services/verifyAcc.js";
 import bcrypt from "bcryptjs";
 
 dotenv.config();

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import Blog from "../models/blog";
-import { uploadToS3 } from "../services/s3Bucket";
+import Blog from "../models/blog.js";
+import { uploadToS3 } from "../services/s3Bucket.js";
 
 const extractFilesFromRequest = (req: Request): Express.Multer.File[] => {
 	const files: Express.Multer.File[] = [];

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Feature from "../models/feature";
+import Feature from "../models/feature.js";
 
 
 export const postFeatures = async(req: Request, res: Response) => {

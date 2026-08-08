@@ -16,19 +16,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // functions
-import { connectToMongo } from "./services/connection"
+import { connectToMongo } from "./services/connection.js"
 
 // routes
-import { chatRoute } from "./routes/chat"
-import { authRoute } from "./routes/auth";
-import { roomRoute } from "./routes/room";
-import { featureRoute } from "./routes/feature";
-import { blogRoute } from "./routes/blog";
-import { projectRoute } from "./routes/project";
-import Room from "./models/room";
+import { chatRoute } from "./routes/chat.js"
+import { authRoute } from "./routes/auth.js";
+import { roomRoute } from "./routes/room.js";
+import { featureRoute } from "./routes/feature.js";
+import { blogRoute } from "./routes/blog.js";
+import { projectRoute } from "./routes/project.js";
+import Room from "./models/room.js";
 
 // middlewares
-import { allowOnlyAuthenticatedUser } from "./middlewares/auth";
+import { allowOnlyAuthenticatedUser } from "./middlewares/auth.js";
 
 const app = express();
 const server = createServer(app);
@@ -47,7 +47,7 @@ app.use(async (req, res, next) => {
 if (!process.env.VERCEL) {
   Promise.all([
     import("socket.io"),
-    import("./services/socket")
+    import("./services/socket.js")
   ]).then(([{ Server }, { socketSetup }]) => {
     const io = new Server(server, {
       pingTimeout: 10000,
