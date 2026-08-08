@@ -2,7 +2,6 @@ import express, { urlencoded } from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import { Server } from "socket.io";
 import { createServer } from "http";
 import helmet from "helmet";
 import compression from "compression";
@@ -18,7 +17,6 @@ const __dirname = path.dirname(__filename);
 
 // functions
 import { connectToMongo } from "./services/connection"
-import { socketSetup } from "./services/socket";
 
 // routes
 import { chatRoute } from "./routes/chat"
@@ -47,26 +45,32 @@ app.use(async (req, res, next) => {
 });
 
 if (!process.env.VERCEL) {
-  const io = new Server(server, {
-    pingTimeout: 10000,
-    pingInterval: 5000,
-    cors: {
-      origin: (origin, callback) => {
-        if (!origin || process.env.NODE_ENV !== "production") return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          console.log("Socket blocked by CORS:", origin);
-          callback(new Error("Not allowed by CORS"));
-        }
-      },
-      methods: ["GET", "POST"],
-      credentials: true,
-    }
-  });
+  Promise.all([
+    import("socket.io"),
+    import("./services/socket")
+  ]).then(([{ Server }, { socketSetup }]) => {
+    const io = new Server(server, {
+      pingTimeout: 10000,
+      pingInterval: 5000,
+      cors: {
+        origin: (origin, callback) => {
+          if (!origin || process.env.NODE_ENV !== "production") return callback(null, true);
+          if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+          } else {
+            console.log("Socket blocked by CORS:", origin);
+            callback(new Error("Not allowed by CORS"));
+          }
+        },
+        methods: ["GET", "POST"],
+        credentials: true,
+      }
+    });
 
-  app.set("io", io);
-  socketSetup(io);
+    app.set("io", io);
+    socketSetup(io);
+  }).catch(console.error);
+
 
   connectToMongo()
     .then(async () => {
