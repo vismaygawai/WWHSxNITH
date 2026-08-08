@@ -9,7 +9,7 @@
 
 - **Google Authentication**: One-tap "Continue with Google" sign-in strictly restricted to `@nith.ac.in` institute accounts.
 - **Real-Time WebSockets**: Instant bidirectional messaging powered by Socket.IO with automatic room seeding (`#general`, `#tech-chat`, `#announcements`, `#random`).
-- **Admin Moderation**: Designated Admin accounts (`25bph049@nith.ac.in`, `25bph050@nith.ac.in`, `25bph045@nith.ac.in`, `25bph035@nith.ac.in`) with real-time message deletion authority and Gold Admin badges.
+- **Admin Moderation**: Designated Admin accounts with real-time message deletion authority and Gold Admin badges.
 - **Editable Profile & Avatars**: Customizable display names and DiceBear avatar gallery presets with local seed persistence.
 - **Fail-Safe Image Uploads**: Image sharing with on-device compression (`browser-image-compression`), upload locking, and dual-mode S3 / Base64 Data URI fallback.
 - **Rich Glassmorphic Design**: Modern DarkVeil WebGL shader background, smooth HSL color palettes, and Framer Motion micro-animations.
