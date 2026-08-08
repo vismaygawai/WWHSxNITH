@@ -98,7 +98,8 @@ function Login() {
             nav({ to: "/rooms", replace: true });
           }
         } catch (err: any) {
-          setError(err.response?.data?.message || "Google Sign-In failed.");
+          const msg = err.response?.data?.message || err.message || "Google Sign-In failed.";
+          setError(msg);
         } finally {
           setBusy(false);
         }
@@ -110,6 +111,8 @@ function Login() {
         (window as any).google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: handleGoogleResponse,
+          auto_select: false,
+          cancel_on_tap_outside: true,
         });
       }
     };
@@ -125,40 +128,42 @@ function Login() {
 
     const windowGoogle = (window as any).google;
 
-    if (windowGoogle?.accounts?.oauth2) {
-      const client = windowGoogle.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: "email profile openid",
-        callback: async (tokenResponse: any) => {
-          if (tokenResponse.access_token) {
-            setBusy(true);
-            try {
-              const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-                headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-              });
-              const profile = await res.json();
-              const { data } = await api.post("/auth/google", { email: profile.email, name: profile.name });
-              if (data.token) {
-                localStorage.setItem("token", data.token);
-                localStorage.setItem("user", JSON.stringify(data.user));
-                window.dispatchEvent(new Event("storage"));
-                toast.success("Signed in with Google!");
-                nav({ to: "/rooms", replace: true });
-              }
-            } catch (err: any) {
-              setError(err.response?.data?.message || "Google Sign-In failed.");
-            } finally {
-              setBusy(false);
-            }
-          }
-        },
-      });
-      client.requestAccessToken();
-      return;
-    }
-
     if (windowGoogle?.accounts?.id) {
-      windowGoogle.accounts.id.prompt();
+      windowGoogle.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          if (windowGoogle?.accounts?.oauth2) {
+            const client = windowGoogle.accounts.oauth2.initTokenClient({
+              client_id: GOOGLE_CLIENT_ID,
+              scope: "email profile openid",
+              callback: async (tokenResponse: any) => {
+                if (tokenResponse.access_token) {
+                  setBusy(true);
+                  try {
+                    const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+                      headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+                    });
+                    const profile = await res.json();
+                    const { data } = await api.post("/auth/google", { email: profile.email, name: profile.name });
+                    if (data.token) {
+                      localStorage.setItem("token", data.token);
+                      localStorage.setItem("user", JSON.stringify(data.user));
+                      window.dispatchEvent(new Event("storage"));
+                      toast.success("Signed in with Google!");
+                      nav({ to: "/rooms", replace: true });
+                    }
+                  } catch (err: any) {
+                    const msg = err.response?.data?.message || err.message || "Google Sign-In failed.";
+                    setError(msg);
+                  } finally {
+                    setBusy(false);
+                  }
+                }
+              },
+            });
+            client.requestAccessToken();
+          }
+        }
+      });
     }
   }
 
