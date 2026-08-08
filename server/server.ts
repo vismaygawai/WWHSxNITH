@@ -137,9 +137,9 @@ if (process.env.NODE_ENV === "production") {
 
 app.use((err: any, req: any, res: any, next: any) => {
   console.error(err.stack);
-  res.status(500).json({ message: "Internal server error" });
-});
+export { app, server };
 
-const PORT = process.env.PORT || 8000;
-
-server.listen(PORT, () => console.log(`Server started on - http://localhost:${PORT}`));
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 8000;
+  server.listen(PORT, () => console.log(`Server started on - http://localhost:${PORT}`));
+}

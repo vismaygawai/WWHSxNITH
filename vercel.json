@@ -2,7 +2,11 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/:path*",
+      "destination": "/api"
+    },
+    {
+      "source": "/((?!api|socket.io|assets|.*\\..*).*)",
       "destination": "/index.html"
     }
   ]
