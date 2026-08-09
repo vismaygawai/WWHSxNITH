@@ -7,12 +7,23 @@ import { User } from '../types';
 interface MembersModalProps {
     visible: boolean;
     onClose: () => void;
-    title: string;
-    members: User[];
-    onInvite: () => void;
+    title?: string;
+    roomTitle?: string;
+    members?: User[];
+    onInvite?: () => void;
+    currentUserId?: string;
 }
 
-export const MembersModal: React.FC<MembersModalProps> = ({ visible, onClose, title, members, onInvite }) => {
+export const MembersModal: React.FC<MembersModalProps> = ({
+    visible,
+    onClose,
+    title,
+    roomTitle,
+    members = [],
+    onInvite,
+    currentUserId,
+}) => {
+    const displayTitle = roomTitle || title || 'Room Members';
     
     const renderMember = ({ item }: { item: User }) => (
         <View style={styles.memberRow}>
@@ -35,7 +46,7 @@ export const MembersModal: React.FC<MembersModalProps> = ({ visible, onClose, ti
                         <View style={styles.sheet}>
                             <View style={styles.header}>
                                 <View>
-                                    <Text style={styles.title}>{title}</Text>
+                                    <Text style={styles.title}>{displayTitle}</Text>
                                     <Text style={styles.subtitle}>{members.length} members</Text>
                                 </View>
                                 <TouchableOpacity onPress={onClose} style={styles.closeBtn}>

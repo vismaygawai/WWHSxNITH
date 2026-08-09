@@ -6,11 +6,22 @@ import { Colors } from '../constants/theme';
 interface AttachmentModalProps {
     visible: boolean;
     onClose: () => void;
-    onCodePress: () => void;
-    onImagePress: () => void;
+    onCodePress?: () => void;
+    onImagePress?: () => void;
+    onSelectCode?: () => void;
+    onSelectImage?: () => void;
 }
 
-export const AttachmentModal: React.FC<AttachmentModalProps> = ({ visible, onClose, onCodePress, onImagePress }) => {
+export const AttachmentModal: React.FC<AttachmentModalProps> = ({
+    visible,
+    onClose,
+    onCodePress,
+    onImagePress,
+    onSelectCode,
+    onSelectImage,
+}) => {
+    const handleCode = onSelectCode || onCodePress || (() => {});
+    const handleImage = onSelectImage || onImagePress || (() => {});
     const scale = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
@@ -38,10 +49,10 @@ export const AttachmentModal: React.FC<AttachmentModalProps> = ({ visible, onClo
                 <View style={styles.overlay}>
                     <TouchableWithoutFeedback>
                         <Animated.View style={[styles.bubble, { transform: [{ scale }] }]}>
-                            <TouchableOpacity style={styles.button} onPress={() => { onClose(); onCodePress(); }}>
+                            <TouchableOpacity style={styles.button} onPress={() => { onClose(); handleCode(); }}>
                                 <Feather name="code" size={24} color={Colors.primary} />
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.button} onPress={() => { onClose(); onImagePress(); }}>
+                            <TouchableOpacity style={styles.button} onPress={() => { onClose(); handleImage(); }}>
                                 <Feather name="image" size={24} color={Colors.primary} />
                             </TouchableOpacity>
                         </Animated.View>

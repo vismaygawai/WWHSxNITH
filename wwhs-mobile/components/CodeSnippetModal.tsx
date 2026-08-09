@@ -5,15 +5,17 @@ import { Colors } from '../constants/theme';
 interface CodeSnippetModalProps {
     visible: boolean;
     onClose: () => void;
-    onShare: (code: string) => void;
+    onShare?: (code: string) => void;
+    onSend?: (code: string) => void;
 }
 
-export const CodeSnippetModal: React.FC<CodeSnippetModalProps> = ({ visible, onClose, onShare }) => {
+export const CodeSnippetModal: React.FC<CodeSnippetModalProps> = ({ visible, onClose, onShare, onSend }) => {
     const [code, setCode] = useState('');
+    const submitCode = onSend || onShare || (() => {});
 
     const handleShare = () => {
         if (code.trim()) {
-            onShare(code);
+            submitCode(code);
             setCode('');
             onClose();
         }
