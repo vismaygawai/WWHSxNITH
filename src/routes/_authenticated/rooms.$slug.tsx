@@ -404,19 +404,21 @@ function RoomChat() {
 
       {/* Header */}
       <header className="flex items-center gap-3 px-4 md:px-8 py-3 border-b border-border">
-        <button
-          type="button"
-          onClick={() => setShowSidebar(true)}
-          className="md:hidden -ml-1 grid size-9 place-items-center rounded-full bg-white/5 text-white/70"
-        >
-          <Menu className="size-4" />
-        </button>
         <Link
           to="/rooms"
-          className="hidden md:grid -ml-1 size-9 place-items-center rounded-full bg-white/5 text-white/70"
+          className="grid size-9 shrink-0 place-items-center rounded-full bg-white/5 text-white/70 hover:bg-white/10"
+          title="Back to Rooms"
         >
           <ArrowLeft className="size-4" />
         </Link>
+        <button
+          type="button"
+          onClick={() => setShowSidebar(true)}
+          className="grid size-9 shrink-0 place-items-center rounded-full bg-white/5 text-white/70 hover:bg-white/10"
+          title="Channels"
+        >
+          <Menu className="size-4" />
+        </button>
         <div className="grid size-9 place-items-center rounded-2xl bg-primary/15 text-lg ring-1 ring-primary/25">
           #
         </div>

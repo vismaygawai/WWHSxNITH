@@ -8,6 +8,7 @@ interface Room {
   _id: string;
   roomId: string;
   title: string;
+  description?: string;
 }
 
 interface RoomSidebarProps {
@@ -19,9 +20,9 @@ export default function RoomSidebar({ open, onClose }: RoomSidebarProps) {
   const path = useRouterState({ select: (s) => s.location.pathname });
 
   const { data: rooms = [] } = useQuery({
-    queryKey: ["joined-rooms"],
+    queryKey: ["all-rooms-sidebar"],
     queryFn: async () => {
-      const { data } = await api.get("/room/joined");
+      const { data } = await api.get("/room/allRooms");
       return (data.rooms ?? []) as Room[];
     },
   });
@@ -60,7 +61,7 @@ export default function RoomSidebar({ open, onClose }: RoomSidebarProps) {
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-5 pb-3">
-              <span className="text-sm font-semibold text-white/80">Your Rooms</span>
+              <span className="text-sm font-semibold text-white/80">Rooms & Channels</span>
               <button
                 type="button"
                 onClick={onClose}
@@ -74,7 +75,7 @@ export default function RoomSidebar({ open, onClose }: RoomSidebarProps) {
             {/* Room list */}
             <nav className="flex-1 overflow-y-auto px-2.5 space-y-1 pb-4">
               {rooms.length === 0 ? (
-                <p className="px-3 py-4 text-xs text-white/40">No rooms joined yet.</p>
+                <p className="px-3 py-4 text-xs text-white/40">Loading rooms...</p>
               ) : (
                 rooms.map((room) => {
                   const active = path.includes(room.roomId);

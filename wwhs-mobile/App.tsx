@@ -3,17 +3,16 @@ import {
   StyleSheet,
   StatusBar,
   View,
-  ActivityIndicator,
   BackHandler,
   Platform,
   TouchableOpacity,
   Text,
   Image,
 } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
-const WEBSITE_URL = 'https://wwhs.vismay.dev';
+const WEBSITE_URL = 'https://wwhs.vismay.dev/login';
 
 // Custom Mobile User Agent so Google OAuth and third-party Web APIs work seamlessly without blocks
 const CUSTOM_USER_AGENT =
@@ -67,7 +66,7 @@ export default function App() {
               border: 'none',
               backgroundColor: '#0b0a10',
             }}
-            title="WWHS? x NITH"
+            title="NITH Workspace"
             allow="camera; microphone; geolocation"
           />
         </View>
@@ -78,7 +77,7 @@ export default function App() {
   // Native iOS / Android Mobile Render
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#0b0a10" />
 
         <WebView
@@ -93,7 +92,7 @@ export default function App() {
           originWhitelist={['*']}
           allowsInlineMediaPlayback={true}
           mediaPlaybackRequiresUserAction={false}
-          startInLoadingState={true}
+          startInLoadingState={false}
           mixedContentMode="always"
           setSupportMultipleWindows={false}
           allowsBackForwardNavigationGestures={true}
@@ -114,13 +113,6 @@ export default function App() {
           onError={() => {
             setHasError(true);
           }}
-          renderLoading={() => (
-            <View style={styles.loadingOverlay}>
-              <Image source={require('./assets/icon.png')} style={styles.splashLogo} />
-              <Text style={styles.brandTitle}>WWHS? x NITH</Text>
-              <ActivityIndicator size="large" color="#22c55e" style={{ marginTop: 20 }} />
-            </View>
-          )}
         />
 
         {hasError && (
@@ -128,14 +120,14 @@ export default function App() {
             <Image source={require('./assets/icon.png')} style={styles.errorLogo} />
             <Text style={styles.errorTitle}>Connection Failed</Text>
             <Text style={styles.errorText}>
-              Unable to connect to WWHS? x NITH servers. Please check your internet connection.
+              Unable to connect to servers. Please check your internet connection.
             </Text>
             <TouchableOpacity style={styles.retryButton} onPress={handleReload} activeOpacity={0.88}>
               <Text style={styles.retryText}>Retry</Text>
             </TouchableOpacity>
           </View>
         )}
-      </SafeAreaView>
+      </View>
     </SafeAreaProvider>
   );
 }
@@ -149,25 +141,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0b0a10',
   },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#0b0a10',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  splashLogo: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    marginBottom: 16,
-  },
-  brandTitle: {
-    color: '#ffffff',
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: 2,
-  },
   errorOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#0b0a10',
@@ -177,9 +150,9 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   errorLogo: {
-    width: 72,
-    height: 72,
-    borderRadius: 18,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     marginBottom: 16,
   },
   errorTitle: {
