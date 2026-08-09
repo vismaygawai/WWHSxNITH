@@ -30,7 +30,8 @@ const DISABLE_PINCH_ZOOM_JS = `
   true;
 `;
 
-const ANDROID_STATUS_BAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 36) : 0;
+// Guarantee at least 48px top status bar clearance on all Android devices
+const ANDROID_STATUS_BAR_HEIGHT = Platform.OS === 'android' ? Math.max(StatusBar.currentHeight || 0, 48) : 0;
 
 export default function App() {
   const webViewRef = useRef<any>(null);
@@ -91,8 +92,8 @@ export default function App() {
   // Native iOS / Android Mobile Render
   return (
     <SafeAreaProvider>
-      <View style={[styles.container, { paddingTop: ANDROID_STATUS_BAR_HEIGHT }]}>
-        <StatusBar barStyle="light-content" backgroundColor="#0b0a10" translucent={false} />
+      <View style={[styles.container, { marginTop: ANDROID_STATUS_BAR_HEIGHT }]}>
+        <StatusBar barStyle="light-content" backgroundColor="#0b0a10" translucent={true} />
 
         <WebView
           ref={webViewRef}

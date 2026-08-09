@@ -680,13 +680,13 @@ function RoomChat() {
             }}
             placeholder={`Message #${roomTitle}`}
             maxLength={4000}
-            className="flex-1 bg-transparent px-3 text-sm text-white placeholder:text-white/35 outline-none"
+            className="flex-1 min-w-0 bg-transparent px-2 text-sm text-white placeholder:text-white/35 outline-none"
           />
           <button
             type="submit"
             disabled={!draft.trim() || sending}
             aria-label="Send message"
-            className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
+            className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 disabled:opacity-40 transition-all active:scale-95"
           >
             {sending ? (
               <Loader2 className="size-4 animate-spin" />
