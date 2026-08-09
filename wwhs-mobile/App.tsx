@@ -9,7 +9,7 @@ import {
   Text,
   Image,
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
 const WEBSITE_URL = 'https://wwhs.vismay.dev/login';
@@ -89,7 +89,7 @@ export default function App() {
   // Native iOS / Android Mobile Render
   return (
     <SafeAreaProvider>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <StatusBar barStyle="light-content" backgroundColor="#0b0a10" />
 
         <WebView
@@ -141,7 +141,7 @@ export default function App() {
             </TouchableOpacity>
           </View>
         )}
-      </View>
+      </SafeAreaView>
     </SafeAreaProvider>
   );
 }
