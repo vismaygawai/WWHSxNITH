@@ -1,6 +1,5 @@
-# WWHS? x NITH
+# NITH Live Chat & Mobile Community Platform
 
-> _The perfect group icon doesn't exi........_
 > A members-only, real-time live chat community platform built for NITH tech enthusiasts.
 
 ---
@@ -9,6 +8,8 @@
 
 - **Google Authentication**: One-tap "Continue with Google" sign-in strictly restricted to `@nith.ac.in` institute accounts.
 - **Real-Time WebSockets**: Instant bidirectional messaging powered by Socket.IO with automatic room seeding (`#general`, `#tech-chat`, `#announcements`, `#random`).
+- **Direct Mobile APK Download**: Built-in direct APK download endpoint (`/wwhs-mobile.apk`) served straight from the platform without external redirects.
+- **Native Mobile App Wrapper**: Full-screen native Expo / React Native mobile application wrapper (`wwhs-mobile`) with hardware back button navigation, offline error handling, and launcher icon integration.
 - **Admin Moderation**: Designated Admin accounts with real-time message deletion authority and Gold Admin badges.
 - **Editable Profile & Avatars**: Customizable display names and DiceBear avatar gallery presets with local seed persistence.
 - **Fail-Safe Image Uploads**: Image sharing with on-device compression (`browser-image-compression`), upload locking, and dual-mode S3 / Base64 Data URI fallback.
@@ -22,13 +23,20 @@
 
 ## Tech Stack
 
-### Frontend
+### Web Frontend
 
 - **Framework**: [React 19](https://react.dev/) + [Vite 7](https://vitejs.dev/)
 - **Routing**: [TanStack Router](https://tanstack.com/router)
 - **State & Data**: [TanStack Query v5](https://tanstack.com/query) + Axios
 - **Styling**: Vanilla CSS / Tailwind CSS v4 + Framer Motion
 - **Icons**: Lucide React + Emoji Picker React
+
+### Mobile App (`wwhs-mobile`)
+
+- **Framework**: [Expo SDK 54](https://expo.dev/) + [React Native 0.81](https://reactnative.dev/)
+- **Navigation**: React Navigation Native Stack
+- **Native Container**: Full-screen React Native WebView with hardware back button handler
+- **Assets**: Custom adaptive launcher icons and dark splash screen
 
 ### Backend
 
@@ -45,7 +53,7 @@
 
 ```text
 WWHSxNITH/
-├── public/                 # Static assets (favicons, notification sound)
+├── public/                 # Static assets (favicons, wwhs-mobile.apk download)
 ├── server/                 # Express backend server
 │   ├── controllers/        # Route logic (auth, chat, room, project)
 │   ├── middlewares/        # Auth verification & security
@@ -54,25 +62,22 @@ WWHSxNITH/
 │   ├── services/           # Socket.IO, S3 bucket, SMTP Nodemailer
 │   └── server.ts           # Express server entry point
 ├── src/                    # Frontend React SPA
-│   ├── assets/             # Logos and graphics (wwhs.svg)
+│   ├── assets/             # Logos and graphics
 │   ├── components/         # Reusable UI (DarkVeil, CodeModal, ImageModal, PublicNav, SideNav)
 │   ├── hooks/              # Custom hooks (useAuth, useGlobalNotifications, usePullToRefresh)
 │   ├── routes/             # TanStack file-based routes (index, login, rooms, profile, members)
 │   ├── services/           # Axios API client & Socket singleton
 │   ├── styles.css          # Core design system & theme tokens
 │   └── main.tsx            # React DOM root
+├── wwhs-mobile/            # Expo React Native mobile application
+│   ├── assets/             # Mobile icons and splash assets
+│   ├── App.tsx             # Main mobile entry point & native container
+│   ├── app.json            # Expo project configuration
+│   └── package.json        # Mobile app dependencies
 ├── index.html              # Vite SPA entry point
 ├── vite.config.ts          # Vite build configuration
 └── package.json            # Dependencies and scripts
 ```
-
----
-
-## The 3 Rules of WWHS?
-
-1. **1st rule of WWHS?** — _Don't talk about WWHS._
-2. **2nd rule of WWHS?** — _If your group icon isn't cursed, you're doing it wrong._
-3. **3rd rule of WWHS?** — _If this is your first time on WWHS, you have to post._
 
 ---
 
@@ -131,6 +136,12 @@ WWHSxNITH/
    npm run dev
    ```
    This concurrently launches the Vite dev server (`http://localhost:5173`) and the Express backend (`http://localhost:8000`).
+
+5. **Run Mobile App**:
+   ```bash
+   cd wwhs-mobile
+   npm start
+   ```
 
 ---
 
