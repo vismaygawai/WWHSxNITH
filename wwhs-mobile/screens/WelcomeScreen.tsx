@@ -11,7 +11,15 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { WWHSLogo } from '../components/WWHSLogo';
+import { GoogleIcon } from '../components/GoogleIcon';
 import { useToast } from '../context/ToastContext';
+import client from '../services/client';
+import { syncPushToken } from '../services/notification';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const { width } = Dimensions.get('window');
 
@@ -19,43 +27,80 @@ type Props = {
   navigation: NativeStackNavigationProp<any>;
 };
 
+const GOOGLE_CLIENT_ID = "182255210945-ecnl2fl1p6hn74d3dlbr4lo28h5vtnmt.apps.googleusercontent.com";
+
 export default function WelcomeScreen({ navigation }: Props) {
   const { showToast } = useToast();
 
-  const handleGooglePress = () => {
-    showToast('Redirecting to Google Authentication...', 'info');
-    // Navigates to Login with auto-trigger or handles web OAuth flow
-    navigation.navigate('Login', { google: true });
+  const handleGoogleSignIn = async () => {
+    try {
+      showToast('Opening Google Sign-In...', 'info');
+      const redirectUri = 'https://wwhs.vismay.dev/login';
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&response_type=token&scope=openid%20profile%20email&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+      
+      if (result.type === 'success' && result.url) {
+        // Extract params from redirect URL
+        const url = result.url;
+        const access_token_match = url.match(/access_token=([^&]+)/);
+        if (access_token_match) {
+          const accessToken = access_token_match[1];
+          // Fetch Google User Profile
+          const profileRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          const profile = await profileRes.json();
+
+          if (profile.email) {
+            if (!profile.email.endsWith('@nith.ac.in')) {
+              showToast('Only @nith.ac.in Google accounts can join.', 'error');
+              return;
+            }
+            const authRes = await client.post('/api/auth/google', {
+              email: profile.email,
+              name: profile.name,
+            });
+            const { user, token } = authRes.data;
+            if (token) await AsyncStorage.setItem('token', token);
+            await AsyncStorage.setItem('userId', user._id || user.id);
+            await AsyncStorage.setItem('userName', user.name);
+            await AsyncStorage.setItem('userEmail', user.email);
+            showToast('Signed in with Google!', 'success');
+            syncPushToken();
+            navigation.replace('Room');
+            return;
+          }
+        }
+      }
+      // Fallback redirect to Login screen
+      navigation.navigate('Login', { google: true });
+    } catch (error: any) {
+      console.log('Google Auth error:', error);
+      navigation.navigate('Login', { google: true });
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0b0a10" />
-      
-      {/* Ambient Dark Veiled Gradient Backgrounds */}
+
+      {/* DarkVeil Background Glow */}
       <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+        <LinearGradient colors={['#0b0a10', '#0e0d16', '#06050a']} style={StyleSheet.absoluteFillObject} />
         <LinearGradient
-          colors={['#0b0a10', '#0f0e18', '#07060c']}
-          style={StyleSheet.absoluteFillObject}
-        />
-        <LinearGradient
-          colors={['rgba(34, 197, 94, 0.15)', 'transparent', 'rgba(16, 185, 129, 0.05)']}
+          colors={['rgba(34, 197, 94, 0.14)', 'transparent', 'rgba(16, 185, 129, 0.04)']}
           start={{ x: 0.2, y: 0.1 }}
           end={{ x: 0.8, y: 0.9 }}
-          style={styles.glowOverlay}
+          style={StyleSheet.absoluteFillObject}
         />
-        <View style={styles.topRadialGlow} />
+        <View style={styles.topAmbientGlow} />
       </View>
 
       <View style={styles.content}>
-        {/* Brand Header Badge */}
-        <View style={styles.badgeWrapper}>
-          <LinearGradient
-            colors={['rgba(34, 197, 94, 0.2)', 'rgba(34, 197, 94, 0.05)']}
-            style={styles.logoBadge}
-          >
-            <Text style={styles.logoText}>W</Text>
-          </LinearGradient>
+        {/* Top Outer Logo Badge with wwhs.svg */}
+        <View style={styles.logoBadgeOuter}>
+          <WWHSLogo size={34} />
         </View>
 
         <Text style={styles.brandTitle}>WWHS? x NITH</Text>
@@ -69,18 +114,16 @@ export default function WelcomeScreen({ navigation }: Props) {
           A members-only live chat community for NITH tech enthusiasts.
         </Text>
 
-        {/* Buttons Section */}
-        <View style={styles.actionContainer}>
+        {/* Action Buttons matching Website */}
+        <View style={styles.actionGroup}>
           {/* Continue with Google */}
           <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.googleButton}
-            onPress={handleGooglePress}
+            activeOpacity={0.88}
+            style={styles.googleBtn}
+            onPress={handleGoogleSignIn}
           >
-            <View style={styles.googleIconContainer}>
-              <Text style={styles.googleIconLetter}>G</Text>
-            </View>
-            <Text style={styles.googleButtonText}>Continue with Google</Text>
+            <GoogleIcon size={18} />
+            <Text style={styles.googleBtnText}>Continue with Google</Text>
           </TouchableOpacity>
 
           <View style={styles.dividerRow}>
@@ -89,30 +132,23 @@ export default function WelcomeScreen({ navigation }: Props) {
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Primary Sign Up */}
+          {/* Get Started / Sign Up */}
           <TouchableOpacity
-            activeOpacity={0.88}
-            style={styles.primaryButton}
+            activeOpacity={0.9}
+            style={styles.primaryBtn}
             onPress={() => navigation.navigate('Signup')}
           >
-            <LinearGradient
-              colors={['#22c55e', '#16a34a']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.gradientButtonContent}
-            >
-              <Text style={styles.primaryButtonText}>Create Account</Text>
-              <Ionicons name="arrow-forward" size={18} color="#052e16" />
-            </LinearGradient>
+            <Text style={styles.primaryBtnText}>Get Started</Text>
+            <Ionicons name="arrow-forward" size={16} color="#052e16" />
           </TouchableOpacity>
 
-          {/* Secondary Log In */}
+          {/* Sign In */}
           <TouchableOpacity
             activeOpacity={0.85}
-            style={styles.secondaryButton}
+            style={styles.secondaryBtn}
             onPress={() => navigation.navigate('Login')}
           >
-            <Text style={styles.secondaryButtonText}>Log In</Text>
+            <Text style={styles.secondaryBtnText}>Sign in</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -125,66 +161,51 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0b0a10',
   },
-  glowOverlay: {
+  topAmbientGlow: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  topRadialGlow: {
-    position: 'absolute',
-    top: -100,
+    top: -120,
     alignSelf: 'center',
-    width: width * 0.9,
-    height: width * 0.9,
-    borderRadius: (width * 0.9) / 2,
+    width: width * 0.95,
+    height: width * 0.95,
+    borderRadius: (width * 0.95) / 2,
     backgroundColor: 'rgba(34, 197, 94, 0.12)',
-    opacity: 0.6,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 28,
+    paddingHorizontal: 24,
   },
-  badgeWrapper: {
-    marginBottom: 20,
-  },
-  logoBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+  logoBadgeOuter: {
+    width: 60,
+    height: 60,
+    borderRadius: 18,
+    backgroundColor: 'hsla(0, 0%, 8%, 0.62)',
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.35)',
+    borderColor: 'hsla(0, 0%, 100%, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 16,
     shadowColor: '#22c55e',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 14,
-    elevation: 10,
-  },
-  logoText: {
-    color: '#ffffff',
-    fontSize: 32,
-    fontWeight: '900',
-    letterSpacing: -1,
+    elevation: 8,
   },
   brandTitle: {
-    color: 'rgba(255, 255, 255, 0.95)',
+    color: '#ffffff',
     fontSize: 22,
     fontWeight: '800',
-    letterSpacing: 3,
+    letterSpacing: 2,
     marginBottom: 16,
   },
   heroHeading: {
     color: '#ffffff',
-    fontSize: 30,
+    fontSize: 32,
     fontWeight: '800',
     textAlign: 'center',
     marginBottom: 14,
-    lineHeight: 38,
+    lineHeight: 40,
   },
   emeraldHighlight: {
     color: '#4ade80',
@@ -193,42 +214,32 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 15,
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 36,
     lineHeight: 22,
     maxWidth: 320,
   },
-  actionContainer: {
+  actionGroup: {
     width: '100%',
     gap: 12,
   },
-  googleButton: {
+  googleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    borderRadius: 9999,
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    gap: 12,
+    borderColor: 'rgba(255, 255, 255, 0.10)',
+    borderRadius: 16,
+    paddingVertical: 14,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
-  googleIconContainer: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  googleIconLetter: {
-    color: '#4285F4',
-    fontSize: 13,
-    fontWeight: '900',
-  },
-  googleButtonText: {
+  googleBtnText: {
     color: '#ffffff',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
   },
   dividerRow: {
@@ -244,44 +255,41 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     color: 'rgba(255, 255, 255, 0.35)',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
+    letterSpacing: 1,
   },
-  primaryButton: {
-    width: '100%',
-    borderRadius: 9999,
-    overflow: 'hidden',
+  primaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#22c55e',
+    borderRadius: 16,
+    paddingVertical: 15,
+    gap: 8,
     shadowColor: '#22c55e',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 14,
     elevation: 8,
   },
-  gradientButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    gap: 8,
-  },
-  primaryButtonText: {
+  primaryBtnText: {
     color: '#052e16',
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  secondaryButton: {
-    backgroundColor: 'rgba(15, 14, 22, 0.6)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 9999,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  secondaryButtonText: {
-    color: 'rgba(255, 255, 255, 0.90)',
     fontSize: 15,
     fontWeight: '700',
+  },
+  secondaryBtn: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryBtnText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

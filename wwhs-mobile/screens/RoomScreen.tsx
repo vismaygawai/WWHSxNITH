@@ -16,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { WWHSLogo } from '../components/WWHSLogo';
 import client from '../services/client';
 import { useToast } from '../context/ToastContext';
 
@@ -107,12 +108,12 @@ export default function RoomScreen({ navigation }: Props) {
         <LinearGradient colors={['#0b0a10', '#0d0c16', '#06050a']} style={StyleSheet.absoluteFillObject} />
       </View>
 
-      {/* Luxury Top Header Bar */}
+      {/* Top Navigation Bar with wwhs.svg Logo */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <LinearGradient colors={['rgba(34, 197, 94, 0.25)', 'rgba(34, 197, 94, 0.05)']} style={styles.logoBadge}>
-            <Text style={styles.logoText}>W</Text>
-          </LinearGradient>
+          <View style={styles.logoBadgeContainer}>
+            <WWHSLogo size={26} />
+          </View>
           <View>
             <Text style={styles.brandTitle}>WWHS? x NITH</Text>
             <Text style={styles.greetingText}>Welcome, {userName || 'Member'}</Text>
@@ -124,7 +125,7 @@ export default function RoomScreen({ navigation }: Props) {
         </TouchableOpacity>
       </View>
 
-      {/* Search & Channel Filter */}
+      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={18} color="rgba(255, 255, 255, 0.4)" />
@@ -202,16 +203,16 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255, 255, 255, 0.08)',
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  logoBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+  logoBadgeContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.35)',
+    borderColor: 'rgba(255, 255, 255, 0.10)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logoText: { color: '#ffffff', fontSize: 22, fontWeight: '900' },
   brandTitle: { color: '#ffffff', fontSize: 17, fontWeight: '800' },
   greetingText: { color: 'rgba(255, 255, 255, 0.5)', fontSize: 12, fontWeight: '600' },
   profileAvatarWrapper: {
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   listContainer: { paddingHorizontal: 20, paddingBottom: 30, gap: 14 },
   roomCard: {
-    backgroundColor: 'hsla(0, 0%, 8%, 0.65)',
+    backgroundColor: 'hsla(0, 0%, 8%, 0.62)',
     borderWidth: 1,
     borderColor: 'hsla(0, 0%, 100%, 0.10)',
     borderRadius: 22,

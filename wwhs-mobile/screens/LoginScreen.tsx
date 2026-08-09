@@ -14,14 +14,21 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import { WWHSLogo } from '../components/WWHSLogo';
+import { GoogleIcon } from '../components/GoogleIcon';
 import client from '../services/client';
 import { useToast } from '../context/ToastContext';
 import { syncPushToken } from '../services/notification';
+
+WebBrowser.maybeCompleteAuthSession();
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
   route: any;
 };
+
+const GOOGLE_CLIENT_ID = "182255210945-ecnl2fl1p6hn74d3dlbr4lo28h5vtnmt.apps.googleusercontent.com";
 
 export default function LoginScreen({ navigation, route }: Props) {
   const [email, setEmail] = useState('');
@@ -32,7 +39,7 @@ export default function LoginScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     if (route.params?.google) {
-      showToast('Google Sign-In ready. Enter your @nith.ac.in address or password to proceed.', 'info');
+      handleGoogleSignIn();
     }
   }, [route.params]);
 
@@ -41,15 +48,15 @@ export default function LoginScreen({ navigation, route }: Props) {
       showToast('Please fill in all fields', 'error');
       return;
     }
-    const cleanMail = email.trim().toLowerCase();
-    if (!cleanMail.endsWith('@nith.ac.in')) {
+    const mail = email.trim().toLowerCase();
+    if (!mail.endsWith('@nith.ac.in')) {
       showToast('Only @nith.ac.in email addresses can join.', 'error');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await client.post('/api/auth/login', { email: cleanMail, password });
+      const response = await client.post('/api/auth/login', { email: mail, password });
       const { user, token } = response.data;
       if (token) {
         await AsyncStorage.setItem('token', token);
@@ -58,36 +65,72 @@ export default function LoginScreen({ navigation, route }: Props) {
       await AsyncStorage.setItem('userName', user.name);
       await AsyncStorage.setItem('userEmail', user.email);
 
-      showToast('Logged in successfully', 'success');
+      showToast('Signed in successfully!', 'success');
       syncPushToken();
       navigation.replace('Room');
     } catch (error: any) {
-      showToast(error.response?.data?.message || 'Login failed', 'error');
+      showToast(error.response?.data?.message || 'Invalid credentials', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    showToast('Redirecting to Google Auth Service...', 'info');
-    // Prompt for Google email or connect via standard client
-    if (!email || !email.endsWith('@nith.ac.in')) {
-      showToast('Enter your @nith.ac.in address above first', 'info');
-      return;
-    }
     setLoading(true);
     try {
-      const response = await client.post('/api/auth/google', { email: email.trim().toLowerCase() });
-      const { user, token } = response.data;
-      if (token) {
-        await AsyncStorage.setItem('token', token);
+      showToast('Connecting to Google Auth...', 'info');
+      const redirectUri = 'https://wwhs.vismay.dev/login';
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&response_type=token&scope=openid%20profile%20email&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+
+      if (result.type === 'success' && result.url) {
+        const url = result.url;
+        const tokenMatch = url.match(/access_token=([^&]+)/);
+        if (tokenMatch) {
+          const accessToken = tokenMatch[1];
+          const profileRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          const profile = await profileRes.json();
+
+          if (profile.email) {
+            if (!profile.email.endsWith('@nith.ac.in')) {
+              showToast('Only @nith.ac.in Google accounts can join.', 'error');
+              setLoading(false);
+              return;
+            }
+            const authRes = await client.post('/api/auth/google', {
+              email: profile.email,
+              name: profile.name,
+            });
+            const { user, token } = authRes.data;
+            if (token) await AsyncStorage.setItem('token', token);
+            await AsyncStorage.setItem('userId', user._id || user.id);
+            await AsyncStorage.setItem('userName', user.name);
+            await AsyncStorage.setItem('userEmail', user.email);
+
+            showToast('Signed in with Google!', 'success');
+            syncPushToken();
+            navigation.replace('Room');
+            return;
+          }
+        }
       }
-      await AsyncStorage.setItem('userId', user._id || user.id);
-      await AsyncStorage.setItem('userName', user.name);
-      await AsyncStorage.setItem('userEmail', user.email);
-      showToast('Signed in with Google!', 'success');
-      syncPushToken();
-      navigation.replace('Room');
+
+      // If user typed email manually, attempt direct auth endpoint fallback
+      if (email.trim().toLowerCase().endsWith('@nith.ac.in')) {
+        const authRes = await client.post('/api/auth/google', { email: email.trim().toLowerCase() });
+        const { user, token } = authRes.data;
+        if (token) await AsyncStorage.setItem('token', token);
+        await AsyncStorage.setItem('userId', user._id || user.id);
+        await AsyncStorage.setItem('userName', user.name);
+        await AsyncStorage.setItem('userEmail', user.email);
+        showToast('Signed in with Google!', 'success');
+        syncPushToken();
+        navigation.replace('Room');
+        return;
+      }
     } catch (error: any) {
       showToast(error.response?.data?.message || 'Google Auth failed', 'error');
     } finally {
@@ -99,16 +142,7 @@ export default function LoginScreen({ navigation, route }: Props) {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0b0a10" />
       <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
-        <LinearGradient
-          colors={['#0b0a10', '#100f1a', '#06050a']}
-          style={StyleSheet.absoluteFillObject}
-        />
-        <LinearGradient
-          colors={['rgba(34, 197, 94, 0.12)', 'transparent']}
-          start={{ x: 0.8, y: 0.1 }}
-          end={{ x: 0.2, y: 0.8 }}
-          style={styles.glowOverlay}
-        />
+        <LinearGradient colors={['#0b0a10', '#0e0d16', '#06050a']} style={StyleSheet.absoluteFillObject} />
       </View>
 
       <TouchableOpacity
@@ -124,23 +158,28 @@ export default function LoginScreen({ navigation, route }: Props) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Glass Form Card */}
+        {/* 1:1 Website Glass Card */}
         <View style={styles.glassCard}>
-          <Text style={styles.title}>Members only</Text>
+          <View style={styles.cardHeaderRow}>
+            <View style={styles.innerLogoBadge}>
+              <WWHSLogo size={28} />
+            </View>
+            <Text style={styles.title}>Members only</Text>
+          </View>
+
           <Text style={styles.subtitle}>
             Use your institute account — like <Text style={styles.emeraldText}>24bcs999@nith.ac.in</Text>.
           </Text>
 
-          {/* Continue with Google */}
+          {/* Website Matching Google Button */}
           <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.googleButton}
+            activeOpacity={0.88}
+            style={styles.googleBtn}
             onPress={handleGoogleSignIn}
+            disabled={loading}
           >
-            <View style={styles.googleIconContainer}>
-              <Text style={styles.googleIconLetter}>G</Text>
-            </View>
-            <Text style={styles.googleButtonText}>Continue with Google</Text>
+            <GoogleIcon size={18} />
+            <Text style={styles.googleBtnText}>Continue with Google</Text>
           </TouchableOpacity>
 
           <View style={styles.dividerRow}>
@@ -149,13 +188,13 @@ export default function LoginScreen({ navigation, route }: Props) {
             <View style={styles.dividerLine} />
           </View>
 
-          <View style={styles.formGroup}>
+          <View style={styles.inputGroup}>
             <Text style={styles.label}>EMAIL ADDRESS</Text>
             <TextInput
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              placeholder="24bcs999@nith.ac.in"
+              placeholder="you@nith.ac.in"
               placeholderTextColor="rgba(255, 255, 255, 0.35)"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -163,9 +202,9 @@ export default function LoginScreen({ navigation, route }: Props) {
             />
           </View>
 
-          <View style={styles.formGroup}>
+          <View style={styles.inputGroup}>
             <Text style={styles.label}>PASSWORD</Text>
-            <View style={styles.passwordContainer}>
+            <View style={styles.passwordWrapper}>
               <TextInput
                 style={styles.passwordInput}
                 value={password}
@@ -176,7 +215,7 @@ export default function LoginScreen({ navigation, route }: Props) {
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeButton}
+                style={styles.eyeBtn}
                 activeOpacity={0.7}
               >
                 <Ionicons
@@ -189,31 +228,24 @@ export default function LoginScreen({ navigation, route }: Props) {
           </View>
 
           <TouchableOpacity
-            style={styles.forgotPassword}
+            style={styles.forgotPassBtn}
             onPress={() => navigation.navigate('ForgotPassword')}
             activeOpacity={0.7}
           >
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            <Text style={styles.forgotPassText}>Forgot Password?</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.submitButton}
+            style={styles.primaryBtn}
             onPress={handleLogin}
             disabled={loading}
             activeOpacity={0.88}
           >
-            <LinearGradient
-              colors={['#22c55e', '#16a34a']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.gradientSubmit}
-            >
-              {loading ? (
-                <ActivityIndicator color="#052e16" />
-              ) : (
-                <Text style={styles.submitButtonText}>Sign In</Text>
-              )}
-            </LinearGradient>
+            {loading ? (
+              <ActivityIndicator color="#052e16" />
+            ) : (
+              <Text style={styles.primaryBtnText}>Sign in</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.footerRow}>
@@ -233,13 +265,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0b0a10',
   },
-  glowOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
   backButton: {
     padding: 16,
     marginLeft: 8,
@@ -252,59 +277,61 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   glassCard: {
-    backgroundColor: 'hsla(0, 0%, 8%, 0.65)',
+    backgroundColor: 'hsla(0, 0%, 8%, 0.62)',
     borderWidth: 1,
     borderColor: 'hsla(0, 0%, 100%, 0.10)',
     borderRadius: 28,
     padding: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.45,
     shadowRadius: 24,
-    elevation: 12,
+    elevation: 10,
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 6,
+  },
+  innerLogoBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.10)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     color: '#ffffff',
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '800',
-    marginBottom: 6,
   },
   subtitle: {
-    color: 'rgba(255, 255, 255, 0.60)',
-    fontSize: 14,
-    marginBottom: 24,
-    lineHeight: 20,
+    color: 'rgba(255, 255, 255, 0.55)',
+    fontSize: 13,
+    marginBottom: 20,
+    lineHeight: 18,
   },
   emeraldText: {
     color: '#4ade80',
     fontWeight: '600',
   },
-  googleButton: {
+  googleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: 'rgba(255, 255, 255, 0.10)',
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    gap: 12,
+    gap: 10,
   },
-  googleIconContainer: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  googleIconLetter: {
-    color: '#4285F4',
-    fontSize: 12,
-    fontWeight: '900',
-  },
-  googleButtonText: {
+  googleBtnText: {
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
@@ -322,10 +349,11 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     color: 'rgba(255, 255, 255, 0.35)',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
+    letterSpacing: 1,
   },
-  formGroup: {
+  inputGroup: {
     marginBottom: 16,
     gap: 6,
   },
@@ -345,7 +373,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 15,
   },
-  passwordContainer: {
+  passwordWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -360,41 +388,39 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 15,
   },
-  eyeButton: {
+  eyeBtn: {
     paddingHorizontal: 14,
   },
-  forgotPassword: {
+  forgotPassBtn: {
     alignSelf: 'flex-end',
     marginBottom: 20,
   },
-  forgotPasswordText: {
+  forgotPassText: {
     color: '#4ade80',
     fontSize: 13,
     fontWeight: '600',
   },
-  submitButton: {
+  primaryBtn: {
+    backgroundColor: '#22c55e',
     borderRadius: 16,
-    overflow: 'hidden',
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#22c55e',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 14,
     elevation: 8,
   },
-  gradientSubmit: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  submitButtonText: {
+  primaryBtnText: {
     color: '#052e16',
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 15,
+    fontWeight: '700',
   },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
+    marginTop: 20,
   },
   footerText: {
     color: 'rgba(255, 255, 255, 0.60)',
