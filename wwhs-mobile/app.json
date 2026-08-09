@@ -19,7 +19,6 @@
     },
     "android": {
       "package": "dev.vismay.wwhs",
-      "ndkVersion": "26.1.10909125",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0b0a10"
@@ -27,6 +26,10 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-web-browser",
+      "expo-font"
+    ]
   }
 }
