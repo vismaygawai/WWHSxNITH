@@ -1,32 +1,28 @@
 export const POPULAR_AVATAR_PRESETS = [
-  { id: "bottts-cyber", style: "bottts", seed: "cyber-punk", label: "Cyber Bot" },
-  { id: "bottts-matrix", style: "bottts", seed: "matrix-matrix", label: "Matrix Bot" },
-  { id: "lorelei-luna", style: "lorelei", seed: "Luna", label: "Lorelei" },
-  { id: "lorelei-felix", style: "lorelei", seed: "Felix", label: "Felix" },
-  { id: "adventurer-hero", style: "adventurer", seed: "Hero", label: "Adventurer" },
-  { id: "adventurer-shadow", style: "adventurer", seed: "Shadow", label: "Shadow" },
-  { id: "micah-designer", style: "micah", seed: "Designer", label: "Micah" },
-  { id: "micah-artist", style: "micah", seed: "Artist", label: "Artist" },
-  { id: "miniavs-pixel", style: "miniavs", seed: "Pixel", label: "Mini 3D" },
-  { id: "thumbs-up", style: "thumbs", seed: "Awesome", label: "Thumbs Up" },
-  { id: "big-smile", style: "big-smile", seed: "Joyful", label: "Big Smile" },
-  { id: "open-peeps", style: "open-peeps", seed: "Casual", label: "Open Peep" },
-  { id: "avataaars-zack", style: "avataaars", seed: "Zack", label: "Classic Zack" },
-  { id: "avataaars-aneka", style: "avataaars", seed: "Aneka", label: "Classic Aneka" },
-  { id: "avataaars-jasper", style: "avataaars", seed: "Jasper", label: "Classic Jasper" },
-  { id: "avataaars-willow", style: "avataaars", seed: "Willow", label: "Classic Willow" },
+  { id: "felix", seed: "Felix", label: "Felix" },
+  { id: "aneka", seed: "Aneka", label: "Aneka" },
+  { id: "zack", seed: "Zack", label: "Zack" },
+  { id: "molly", seed: "Molly", label: "Molly" },
+  { id: "jasper", seed: "Jasper", label: "Jasper" },
+  { id: "willow", seed: "Willow", label: "Willow" },
+  { id: "oliver", seed: "Oliver", label: "Oliver" },
+  { id: "luna", seed: "Luna", label: "Luna" },
+  { id: "leo", seed: "Leo", label: "Leo" },
+  { id: "maya", seed: "Maya", label: "Maya" },
+  { id: "ethan", seed: "Ethan", label: "Ethan" },
+  { id: "sofia", seed: "Sofia", label: "Sofia" },
 ];
 
 export function getAvatarUrl(seedOrUrl?: string, fallbackSeed: string = "Felix"): string {
   if (!seedOrUrl) {
-    return `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(fallbackSeed)}`;
+    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(fallbackSeed)}`;
   }
   if (seedOrUrl.startsWith("http://") || seedOrUrl.startsWith("https://") || seedOrUrl.startsWith("data:")) {
     return seedOrUrl;
   }
   if (seedOrUrl.includes(":")) {
-    const [style, seed] = seedOrUrl.split(":");
-    return `https://api.dicebear.com/7.x/${encodeURIComponent(style)}/svg?seed=${encodeURIComponent(seed)}`;
+    const seed = seedOrUrl.split(":")[1];
+    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
   }
-  return `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(seedOrUrl)}`;
+  return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seedOrUrl)}`;
 }

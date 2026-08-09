@@ -403,7 +403,7 @@ function RoomChat() {
       <RoomSidebar open={showSidebar} onClose={() => setShowSidebar(false)} />
 
       {/* Header */}
-      <header className="flex items-center gap-3 px-4 md:px-8 pt-[max(0.85rem,env(safe-area-inset-top))] pb-3 border-b border-border bg-[#0b0a10]/80 backdrop-blur-xl shrink-0 z-20">
+      <header className="flex items-center gap-3 px-4 md:px-8 py-3 border-b border-border bg-[#0b0a10]/80 backdrop-blur-xl shrink-0 z-20">
         <Link
           to="/rooms"
           className="grid size-9 shrink-0 place-items-center rounded-full bg-white/5 text-white/70 hover:bg-white/10"

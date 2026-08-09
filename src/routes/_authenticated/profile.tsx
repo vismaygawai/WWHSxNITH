@@ -19,7 +19,7 @@ function ProfilePage() {
   const nav = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState<string>(user?.avatar || user?.email || "cyber-punk");
+  const [selectedAvatar, setSelectedAvatar] = useState<string>(user?.avatar || user?.email || "Felix");
   const [nameInput, setNameInput] = useState<string>(user?.name || "");
 
   const isAdmin = isAdminEmail(user?.email);
@@ -37,15 +37,15 @@ function ProfilePage() {
     }
   }, [user]);
 
-  async function handleSelectAvatar(presetVal: string) {
-    setSelectedAvatar(presetVal);
+  async function handleSelectAvatar(seed: string) {
+    setSelectedAvatar(seed);
     if (user?._id) {
-      localStorage.setItem(`avatar_seed_${user._id}`, presetVal);
+      localStorage.setItem(`avatar_seed_${user._id}`, seed);
     }
     try {
-      const { data } = await api.put("/auth/profile", { avatar: presetVal, name: nameInput.trim() });
+      await api.put("/auth/profile", { avatar: seed, name: nameInput.trim() });
       if (user) {
-        const updatedUser = { ...user, avatar: presetVal };
+        const updatedUser = { ...user, avatar: seed };
         localStorage.setItem("user", JSON.stringify(updatedUser));
         window.dispatchEvent(new Event("storage"));
       }
@@ -63,7 +63,7 @@ function ProfilePage() {
     }
     setSavingProfile(true);
     try {
-      const { data } = await api.put("/auth/profile", { name: nameInput.trim(), avatar: selectedAvatar });
+      await api.put("/auth/profile", { name: nameInput.trim(), avatar: selectedAvatar });
       toast.success("Profile saved successfully!");
       if (user) {
         const updatedUser = { ...user, name: nameInput.trim(), avatar: selectedAvatar };
@@ -87,7 +87,7 @@ function ProfilePage() {
   }
 
   return (
-    <div className="px-4 md:px-8 pt-[max(1.25rem,env(safe-area-inset-top))] pb-36 max-w-xl">
+    <div className="px-4 md:px-8 pt-4 pb-36 max-w-xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">Profile</h1>
@@ -131,17 +131,16 @@ function ProfilePage() {
         {/* Avatar Selector Gallery */}
         <div>
           <label className="block text-xs font-medium uppercase tracking-wider text-white/45 mb-3">
-            Choose Popular Avatar Preset
+            Choose Avatar Preset
           </label>
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2.5 max-h-56 overflow-y-auto pr-1">
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2.5 max-h-56 overflow-y-auto pr-1">
             {POPULAR_AVATAR_PRESETS.map((preset) => {
-              const presetValue = `${preset.style}:${preset.seed}`;
-              const isSelected = selectedAvatar === presetValue || selectedAvatar === preset.seed;
+              const isSelected = selectedAvatar === preset.seed;
               return (
                 <button
                   key={preset.id}
                   type="button"
-                  onClick={() => handleSelectAvatar(presetValue)}
+                  onClick={() => handleSelectAvatar(preset.seed)}
                   className={`relative flex flex-col items-center p-1.5 rounded-2xl border transition-all ${
                     isSelected
                       ? "border-primary bg-primary/15 ring-2 ring-primary/30 scale-105"
@@ -150,7 +149,7 @@ function ProfilePage() {
                   title={preset.label}
                 >
                   <img
-                    src={getAvatarUrl(presetValue, preset.seed)}
+                    src={getAvatarUrl(preset.seed)}
                     alt={preset.label}
                     className="size-10 rounded-full object-cover"
                   />

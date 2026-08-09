@@ -26,7 +26,7 @@ function Members() {
   });
 
   return (
-    <div className="px-4 md:px-8 pt-[max(1.25rem,env(safe-area-inset-top))] pb-36 max-w-3xl">
+    <div className="px-4 md:px-8 pt-4 pb-36 max-w-3xl">
       <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">Members</h1>
       <p className="mt-1.5 text-sm text-white/55">Everyone who's joined the community.</p>
 

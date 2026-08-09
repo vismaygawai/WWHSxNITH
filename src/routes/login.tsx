@@ -265,7 +265,7 @@ function Login() {
 
       <div className="relative z-10 min-h-app grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.15fr_1fr]">
         {/* LEFT — hero */}
-        <div className="flex flex-col justify-start md:justify-center px-6 pt-[max(2.5rem,env(safe-area-inset-top))] md:p-12 lg:p-20 xl:p-28 pb-6">
+        <div className="flex flex-col justify-start md:justify-center px-6 pt-6 md:p-12 lg:p-20 xl:p-28 pb-6">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}

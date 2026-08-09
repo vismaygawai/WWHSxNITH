@@ -9,7 +9,7 @@ import {
   Text,
   Image,
 } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
 const WEBSITE_URL = 'https://wwhs.vismay.dev/login';
@@ -29,6 +29,8 @@ const DISABLE_PINCH_ZOOM_JS = `
   })();
   true;
 `;
+
+const ANDROID_STATUS_BAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 36) : 0;
 
 export default function App() {
   const webViewRef = useRef<any>(null);
@@ -89,8 +91,8 @@ export default function App() {
   // Native iOS / Android Mobile Render
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-        <StatusBar barStyle="light-content" backgroundColor="#0b0a10" />
+      <View style={[styles.container, { paddingTop: ANDROID_STATUS_BAR_HEIGHT }]}>
+        <StatusBar barStyle="light-content" backgroundColor="#0b0a10" translucent={false} />
 
         <WebView
           ref={webViewRef}
@@ -141,7 +143,7 @@ export default function App() {
             </TouchableOpacity>
           </View>
         )}
-      </SafeAreaView>
+      </View>
     </SafeAreaProvider>
   );
 }
