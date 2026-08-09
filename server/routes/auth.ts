@@ -8,6 +8,7 @@ import {
   handleVerifyEmail,
   handleUserLogOut,
   getMembers,
+  getMe,
   handleUpdateProfile,
   handleGoogleAuth,
 } from "../controllers/auth.js";
@@ -23,6 +24,7 @@ authRoute.post("/forget-password/viaOldPass", handleForgetPassViaOld);
 authRoute.post("/forget-password/viaEmail", handlerForgetPassViaEmail);
 authRoute.post("/reset-password", changeUserPass);
 authRoute.get("/verify-acc", handleVerifyEmail);
+authRoute.get("/me", allowOnlyAuthenticatedUser, getMe);
 authRoute.post("/save-token", allowOnlyAuthenticatedUser, savePushToken);
 authRoute.post("/logout", allowOnlyAuthenticatedUser, handleUserLogOut);
 authRoute.get("/members", allowOnlyAuthenticatedUser, getMembers);

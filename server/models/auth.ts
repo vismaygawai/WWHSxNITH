@@ -7,6 +7,7 @@ export interface IAuth {
   password: string;
   salt: string;
   isVerified: boolean;
+  avatar?: string;
   expoPushToken?: string;
 }
 
@@ -31,6 +32,10 @@ const authSchema: Schema = new Schema(
     isVerified: {
       type: Boolean,
       default: false,
+    },
+    avatar: {
+      type: String,
+      default: "",
     },
     expoPushToken: {
       type: String,

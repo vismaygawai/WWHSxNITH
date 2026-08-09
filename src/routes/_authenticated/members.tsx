@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, ShieldCheck } from "lucide-react";
 import api from "@/services/api";
 import { BRAND_NAME, isAdminEmail } from "@/lib/brand";
+import { getAvatarUrl } from "@/lib/avatar";
 
 export const Route = createFileRoute("/_authenticated/members")({
   component: Members,
@@ -12,6 +13,7 @@ interface Member {
   _id: string;
   name: string;
   email: string;
+  avatar?: string;
 }
 
 function Members() {
@@ -24,7 +26,7 @@ function Members() {
   });
 
   return (
-    <div className="px-4 md:px-8 pt-6 pb-10 max-w-3xl">
+    <div className="px-4 md:px-8 pt-[max(1.25rem,env(safe-area-inset-top))] pb-36 max-w-3xl">
       <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">Members</h1>
       <p className="mt-1.5 text-sm text-white/55">Everyone who's joined the community.</p>
 
@@ -37,8 +39,7 @@ function Members() {
       ) : (
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           {members.map((m) => {
-            const savedSeed = localStorage.getItem(`avatar_seed_${m._id}`);
-            const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(savedSeed || m.email)}`;
+            const avatar = getAvatarUrl(m.avatar, m.email);
             const isAdmin = isAdminEmail(m.email);
             return (
               <div
@@ -48,7 +49,7 @@ function Members() {
                 }`}
               >
                 <img
-                  src={avatarUrl}
+                  src={avatar}
                   alt=""
                   className="size-10 rounded-full object-cover bg-primary/10"
                 />

@@ -6,25 +6,20 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { BRAND_NAME, isAdminEmail } from "@/lib/brand";
+import { POPULAR_AVATAR_PRESETS, getAvatarUrl } from "@/lib/avatar";
 import api from "@/services/api";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   component: ProfilePage,
 });
 
-const AVATAR_PRESETS = ["Felix", "Aneka", "Zack", "Molly", "Jasper", "Willow", "Oliver", "Luna"];
-
-function getAvatarUrl(seed: string): string {
-  return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
-}
-
 function ProfilePage() {
   const { user, logout } = useAuth();
   const qc = useQueryClient();
   const nav = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
-  const [savingName, setSavingName] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState<string>(user?.email || "Felix");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<string>(user?.avatar || user?.email || "cyber-punk");
   const [nameInput, setNameInput] = useState<string>(user?.name || "");
 
   const isAdmin = isAdminEmail(user?.email);
@@ -33,46 +28,53 @@ function ProfilePage() {
     if (user?.name) {
       setNameInput(user.name);
     }
-  }, [user?.name]);
-
-  useEffect(() => {
-    const savedAvatar = localStorage.getItem(`avatar_seed_${user?._id}`);
-    if (savedAvatar) {
-      setSelectedAvatar(savedAvatar);
-    } else if (user?.email) {
-      setSelectedAvatar(user.email);
+    if (user?.avatar) {
+      setSelectedAvatar(user.avatar);
+    } else {
+      const saved = localStorage.getItem(`avatar_seed_${user?._id}`);
+      if (saved) setSelectedAvatar(saved);
+      else if (user?.email) setSelectedAvatar(user.email);
     }
   }, [user]);
 
-  function handleSelectAvatar(seed: string) {
-    setSelectedAvatar(seed);
+  async function handleSelectAvatar(presetVal: string) {
+    setSelectedAvatar(presetVal);
     if (user?._id) {
-      localStorage.setItem(`avatar_seed_${user._id}`, seed);
+      localStorage.setItem(`avatar_seed_${user._id}`, presetVal);
+    }
+    try {
+      const { data } = await api.put("/auth/profile", { avatar: presetVal, name: nameInput.trim() });
+      if (user) {
+        const updatedUser = { ...user, avatar: presetVal };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        window.dispatchEvent(new Event("storage"));
+      }
       toast.success("Avatar updated!");
+    } catch {
+      toast.error("Failed to save avatar to server");
     }
   }
 
-  async function handleSaveName(e: React.FormEvent) {
+  async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
     if (!nameInput.trim()) {
       toast.error("Name cannot be empty");
       return;
     }
-    setSavingName(true);
+    setSavingProfile(true);
     try {
-      const { data } = await api.put("/auth/profile", { name: nameInput.trim() });
-      toast.success("Name updated successfully!");
-      // Update local storage user state
+      const { data } = await api.put("/auth/profile", { name: nameInput.trim(), avatar: selectedAvatar });
+      toast.success("Profile saved successfully!");
       if (user) {
-        const updatedUser = { ...user, name: nameInput.trim() };
+        const updatedUser = { ...user, name: nameInput.trim(), avatar: selectedAvatar };
         localStorage.setItem("user", JSON.stringify(updatedUser));
         window.dispatchEvent(new Event("storage"));
       }
     } catch (error: any) {
-      const msg = error.response?.data?.message || "Failed to update name";
+      const msg = error.response?.data?.message || "Failed to update profile";
       toast.error(msg);
     } finally {
-      setSavingName(false);
+      setSavingProfile(false);
     }
   }
 
@@ -85,7 +87,7 @@ function ProfilePage() {
   }
 
   return (
-    <div className="px-4 md:px-8 pt-6 pb-16 max-w-xl">
+    <div className="px-4 md:px-8 pt-[max(1.25rem,env(safe-area-inset-top))] pb-36 max-w-xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">Profile</h1>
@@ -104,7 +106,7 @@ function ProfilePage() {
         <div className="flex flex-col items-center sm:flex-row sm:items-center gap-5 pb-6 border-b border-white/10">
           <div className="relative">
             <img
-              src={getAvatarUrl(selectedAvatar)}
+              src={getAvatarUrl(selectedAvatar, user?.email)}
               alt="Profile Avatar"
               className="size-20 rounded-full object-cover bg-primary/10 ring-2 ring-primary/40 shadow-lg"
             />
@@ -129,26 +131,27 @@ function ProfilePage() {
         {/* Avatar Selector Gallery */}
         <div>
           <label className="block text-xs font-medium uppercase tracking-wider text-white/45 mb-3">
-            Choose Avatar Preset
+            Choose Popular Avatar Preset
           </label>
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-            {AVATAR_PRESETS.map((preset) => {
-              const isSelected = selectedAvatar === preset;
+          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2.5 max-h-56 overflow-y-auto pr-1">
+            {POPULAR_AVATAR_PRESETS.map((preset) => {
+              const presetValue = `${preset.style}:${preset.seed}`;
+              const isSelected = selectedAvatar === presetValue || selectedAvatar === preset.seed;
               return (
                 <button
-                  key={preset}
+                  key={preset.id}
                   type="button"
-                  onClick={() => handleSelectAvatar(preset)}
-                  className={`relative grid place-items-center p-1 rounded-2xl border transition-all ${
+                  onClick={() => handleSelectAvatar(presetValue)}
+                  className={`relative flex flex-col items-center p-1.5 rounded-2xl border transition-all ${
                     isSelected
                       ? "border-primary bg-primary/15 ring-2 ring-primary/30 scale-105"
                       : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20"
                   }`}
-                  title={preset}
+                  title={preset.label}
                 >
                   <img
-                    src={getAvatarUrl(preset)}
-                    alt={preset}
+                    src={getAvatarUrl(presetValue, preset.seed)}
+                    alt={preset.label}
                     className="size-10 rounded-full object-cover"
                   />
                   {isSelected && (
@@ -163,7 +166,7 @@ function ProfilePage() {
         </div>
 
         {/* Editable Name Form */}
-        <form onSubmit={handleSaveName} className="space-y-4 pt-2">
+        <form onSubmit={handleSaveProfile} className="space-y-4 pt-2">
           <div>
             <label className="block text-xs font-medium uppercase tracking-wider text-white/45 mb-1.5">
               Full Name
@@ -178,10 +181,10 @@ function ProfilePage() {
               />
               <button
                 type="submit"
-                disabled={savingName || nameInput.trim() === user?.name}
+                disabled={savingProfile}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-95 transition-opacity disabled:opacity-40"
               >
-                {savingName ? (
+                {savingProfile ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
                   <Save className="size-4" />

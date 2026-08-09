@@ -141,6 +141,7 @@ export const handleUserLogIn = async (req: Request, res: Response) => {
         _id: existingUser._id,
         name: existingUser.name,
         email: existingUser.email,
+        avatar: existingUser.avatar || "",
         isVerified: true,
       },
       ...(isMobile && { token }),
@@ -151,7 +152,6 @@ export const handleUserLogIn = async (req: Request, res: Response) => {
   }
 };
 
-// via old password
 export const handleForgetPassViaOld = async (req: Request, res: Response) => {
   const { email, oldPassword, newPassword } = req.body;
   if (!email || !oldPassword || !newPassword) {
@@ -182,7 +182,6 @@ export const handleForgetPassViaOld = async (req: Request, res: Response) => {
   }
 };
 
-// via nodemailer
 export const handlerForgetPassViaEmail = async (req: Request, res: Response) => {
   const { email } = req.body;
   if (!email) {
@@ -254,7 +253,7 @@ export const handleUserLogOut = async (req: Request, res: Response) => {
 
 export const getMembers = async (req: Request, res: Response) => {
   try {
-    const users = await Auth.find({ isVerified: true }).select("name email");
+    const users = await Auth.find({ isVerified: true }).select("name email avatar");
     return res.status(200).json({ members: users });
   } catch (error) {
     console.log(`${error}`);
@@ -262,18 +261,37 @@ export const getMembers = async (req: Request, res: Response) => {
   }
 };
 
+export const getMe = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?._id;
+    const user = await Auth.findById(userId).select("name email avatar isVerified");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json({ user });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch user" });
+  }
+};
+
 export const handleUpdateProfile = async (req: Request, res: Response) => {
   try {
     const userId = req.user?._id;
-    const { name } = req.body;
-    if (!name || !name.trim()) {
-      return res.status(400).json({ message: "Name is required" });
+    const { name, avatar } = req.body;
+    const updateData: Record<string, string> = {};
+
+    if (name && name.trim()) {
+      updateData.name = name.trim();
     }
+    if (typeof avatar === "string") {
+      updateData.avatar = avatar.trim();
+    }
+
     const updatedUser = await Auth.findByIdAndUpdate(
       userId,
-      { name: name.trim() },
+      updateData,
       { new: true },
-    ).select("name email isVerified");
+    ).select("name email avatar isVerified");
 
     return res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
   } catch (error) {
@@ -348,6 +366,7 @@ export const handleGoogleAuth = async (req: Request, res: Response) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        avatar: user.avatar || "",
         isVerified: true,
       },
       ...(isMobile && { token }),
