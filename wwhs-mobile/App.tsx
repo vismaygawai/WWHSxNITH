@@ -11,8 +11,13 @@ import {
   Text,
   Image,
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 
 const WEBSITE_URL = 'https://wwhs.vismay.dev';
+
+// Custom Mobile User Agent so Google OAuth and third-party Web APIs work seamlessly without blocks
+const CUSTOM_USER_AGENT =
+  'Mozilla/5.0 (Linux; Android 14; Mobile; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36';
 
 export default function App() {
   const webViewRef = useRef<any>(null);
@@ -69,8 +74,6 @@ export default function App() {
   }
 
   // Native iOS / Android Mobile Render
-  const { WebView } = require('react-native-webview');
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0b0a10" />
@@ -78,6 +81,7 @@ export default function App() {
       <WebView
         ref={webViewRef}
         source={{ uri: WEBSITE_URL }}
+        userAgent={CUSTOM_USER_AGENT}
         style={styles.webview}
         javaScriptEnabled={true}
         domStorageEnabled={true}
@@ -87,6 +91,11 @@ export default function App() {
         allowsInlineMediaPlayback={true}
         mediaPlaybackRequiresUserAction={false}
         startInLoadingState={true}
+        androidLayerType="hardware"
+        mixedContentMode="always"
+        setSupportMultipleWindows={false}
+        allowsBackForwardNavigationGestures={true}
+        overScrollMode="never"
         onNavigationStateChange={(navState: any) => {
           setCanGoBack(navState.canGoBack);
         }}
