@@ -74,7 +74,12 @@ export const handleVerifyEmail = async (req: Request, res: Response) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    return res.status(200).json({ message: "Email verified successfully", user });
+    const isMobile = req.headers["x-platform"] === "mobile";
+    return res.status(200).json({
+      message: "Email verified successfully",
+      user,
+      ...(isMobile && { token }),
+    });
   } catch (error) {
     console.error("Error in handleVerifyEmail:", error);
     return res.status(400).json({ message: "Invalid or expired verification link." });
@@ -129,6 +134,7 @@ export const handleUserLogIn = async (req: Request, res: Response) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
+    const isMobile = req.headers["x-platform"] === "mobile";
     return res.status(200).json({
       message: "Logged in successfully",
       user: {
@@ -137,6 +143,7 @@ export const handleUserLogIn = async (req: Request, res: Response) => {
         email: existingUser.email,
         isVerified: true,
       },
+      ...(isMobile && { token }),
     });
   } catch (error) {
     console.error("Error in handleUserLogIn:", error);
@@ -334,6 +341,7 @@ export const handleGoogleAuth = async (req: Request, res: Response) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    const isMobile = req.headers["x-platform"] === "mobile";
     return res.status(200).json({
       message: "Google login successful",
       user: {
@@ -342,6 +350,7 @@ export const handleGoogleAuth = async (req: Request, res: Response) => {
         email: user.email,
         isVerified: true,
       },
+      ...(isMobile && { token }),
     });
   } catch (error) {
     console.error("Google Auth error:", error);
