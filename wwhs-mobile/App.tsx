@@ -11,14 +11,12 @@ import {
   Text,
   Image,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
 
 const WEBSITE_URL = 'https://wwhs.vismay.dev';
 
 export default function App() {
   const webViewRef = useRef<any>(null);
   const [canGoBack, setCanGoBack] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
   // Handle Android physical back button for web view history navigation
@@ -38,15 +36,45 @@ export default function App() {
 
   const handleReload = () => {
     setHasError(false);
-    setLoading(true);
-    webViewRef.current?.reload();
+    if (Platform.OS === 'web') {
+      const doc = (globalThis as any).document;
+      if (doc) {
+        const iframe = doc.getElementById('wwhs-iframe');
+        if (iframe) iframe.src = WEBSITE_URL;
+      }
+    } else {
+      webViewRef.current?.reload();
+    }
   };
+
+  // Web Browser Platform Fallback Render
+  if (Platform.OS === 'web') {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#0b0a10" />
+        <iframe
+          id="wwhs-iframe"
+          src={WEBSITE_URL}
+          style={{
+            width: '100%',
+            height: '100%',
+            border: 'none',
+            backgroundColor: '#0b0a10',
+          }}
+          title="WWHS? x NITH"
+          allow="camera; microphone; geolocation"
+        />
+      </View>
+    );
+  }
+
+  // Native iOS / Android Mobile Render
+  const { WebView } = require('react-native-webview');
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0b0a10" />
 
-      {/* Main Full-Screen Native WebView */}
       <WebView
         ref={webViewRef}
         source={{ uri: WEBSITE_URL }}
@@ -65,26 +93,18 @@ export default function App() {
         onLoadStart={() => {
           setHasError(false);
         }}
-        onLoadEnd={() => {
-          setLoading(false);
-        }}
         onError={() => {
           setHasError(true);
-          setLoading(false);
         }}
         renderLoading={() => (
           <View style={styles.loadingOverlay}>
-            <Image
-              source={require('./assets/icon.png')}
-              style={styles.splashLogo}
-            />
+            <Image source={require('./assets/icon.png')} style={styles.splashLogo} />
             <Text style={styles.brandTitle}>WWHS? x NITH</Text>
             <ActivityIndicator size="large" color="#22c55e" style={{ marginTop: 20 }} />
           </View>
         )}
       />
 
-      {/* Error Fallback */}
       {hasError && (
         <View style={styles.errorOverlay}>
           <Image source={require('./assets/icon.png')} style={styles.errorLogo} />
