@@ -18,6 +18,18 @@ const WEBSITE_URL = 'https://wwhs.vismay.dev/login';
 const CUSTOM_USER_AGENT =
   'Mozilla/5.0 (Linux; Android 14; Mobile; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36';
 
+// JS to disable touch pinch-to-zoom gestures and enforce strict viewport scale
+const DISABLE_PINCH_ZOOM_JS = `
+  (function() {
+    const meta = document.createElement('meta');
+    meta.name = 'viewport';
+    meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+    document.getElementsByTagName('head')[0].appendChild(meta);
+    document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+  })();
+  true;
+`;
+
 export default function App() {
   const webViewRef = useRef<any>(null);
   const [canGoBack, setCanGoBack] = useState(false);
@@ -84,6 +96,7 @@ export default function App() {
           ref={webViewRef}
           source={{ uri: WEBSITE_URL }}
           userAgent={CUSTOM_USER_AGENT}
+          injectedJavaScript={DISABLE_PINCH_ZOOM_JS}
           style={styles.webview}
           javaScriptEnabled={true}
           domStorageEnabled={true}
@@ -93,6 +106,7 @@ export default function App() {
           allowsInlineMediaPlayback={true}
           mediaPlaybackRequiresUserAction={false}
           startInLoadingState={false}
+          scalesPageToFit={false}
           mixedContentMode="always"
           setSupportMultipleWindows={false}
           allowsBackForwardNavigationGestures={true}
@@ -152,7 +166,7 @@ const styles = StyleSheet.create({
   errorLogo: {
     width: 80,
     height: 80,
-    borderRadius: 40,
+    borderRadius: 16,
     marginBottom: 16,
   },
   errorTitle: {
