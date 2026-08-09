@@ -90,10 +90,9 @@ function Login() {
         setError(null);
         try {
           const { data } = await api.post("/auth/google", { credential: response.credential });
-          if (data.token) {
-            localStorage.setItem("token", data.token);
+          if (data.user) {
             localStorage.setItem("user", JSON.stringify(data.user));
-            window.dispatchEvent(new Event("storage"));
+            window.dispatchEvent(new StorageEvent("storage", { key: "user", newValue: JSON.stringify(data.user) }));
             toast.success("Signed in with Google!");
             nav({ to: "/rooms", replace: true });
           }
@@ -147,10 +146,9 @@ function Login() {
                       email: profile.email,
                       name: profile.name,
                     });
-                    if (data.token) {
-                      localStorage.setItem("token", data.token);
+                    if (data.user) {
                       localStorage.setItem("user", JSON.stringify(data.user));
-                      window.dispatchEvent(new Event("storage"));
+                      window.dispatchEvent(new StorageEvent("storage", { key: "user", newValue: JSON.stringify(data.user) }));
                       toast.success("Signed in with Google!");
                       nav({ to: "/rooms", replace: true });
                     }
