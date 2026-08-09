@@ -98,7 +98,7 @@ function LandingPage() {
             <motion.a
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              href="https://github.com/vismaygawai/WWHSxNITH/releases/latest/download/wwhs-mobile.apk"
+              href="/wwhs-mobile.apk"
               download="wwhs-mobile.apk"
               className="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/5 px-8 py-4 text-sm font-semibold text-white hover:bg-white/10 backdrop-blur-sm"
             >

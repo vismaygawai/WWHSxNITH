@@ -2,12 +2,15 @@
   "expo": {
     "name": "WWHS? x NITH",
     "slug": "wwhs-x-nith",
+    "scheme": "wwhs",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
       "backgroundColor": "#0b0a10"
     },
     "ios": {
@@ -15,19 +18,14 @@
       "bundleIdentifier": "dev.vismay.wwhs"
     },
     "android": {
+      "package": "dev.vismay.wwhs",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0b0a10"
-      },
-      "package": "dev.vismay.wwhs"
+      }
     },
-    "plugins": [
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/icon.png",
-          "color": "#22c55e"
-        }
-      ]
-    ]
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
   }
 }

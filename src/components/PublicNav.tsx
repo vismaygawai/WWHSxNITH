@@ -32,7 +32,7 @@ export default function PublicNav() {
             <Github className="size-4" /> GitHub
           </a>
           <a
-            href="https://github.com/vismaygawai/WWHSxNITH/releases/latest/download/wwhs-mobile.apk"
+            href="/wwhs-mobile.apk"
             download="wwhs-mobile.apk"
             className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium text-white/60 hover:text-white transition-colors"
           >
@@ -74,7 +74,7 @@ export default function PublicNav() {
             <Github className="size-4" /> GitHub
           </a>
           <a
-            href="https://github.com/vismaygawai/WWHSxNITH/releases/latest/download/wwhs-mobile.apk"
+            href="/wwhs-mobile.apk"
             download="wwhs-mobile.apk"
             className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-white/70 hover:text-white"
           >

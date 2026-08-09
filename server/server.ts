@@ -8,6 +8,7 @@ import compression from "compression";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 dotenv.config();
@@ -139,6 +140,14 @@ app.get("/", allowOnlyAuthenticatedUser, (req, res) => {
 });
 
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+
+app.get(["/wwhs-mobile.apk", "/api/download-app"], (req, res) => {
+  const apkPath = path.join(__dirname, "../public/wwhs-mobile.apk");
+  if (fs.existsSync(apkPath)) {
+    return res.download(apkPath, "wwhs-mobile.apk");
+  }
+  return res.redirect("https://github.com/vismaygawai/WWHSxNITH/releases");
+});
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
