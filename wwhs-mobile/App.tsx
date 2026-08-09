@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   View,
   ActivityIndicator,
@@ -11,6 +10,7 @@ import {
   Text,
   Image,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
 const WEBSITE_URL = 'https://wwhs.vismay.dev';
@@ -55,78 +55,88 @@ export default function App() {
   // Web Browser Platform Fallback Render
   if (Platform.OS === 'web') {
     return (
-      <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#0b0a10" />
-        <iframe
-          id="wwhs-iframe"
-          src={WEBSITE_URL}
-          style={{
-            width: '100%',
-            height: '100%',
-            border: 'none',
-            backgroundColor: '#0b0a10',
-          }}
-          title="WWHS? x NITH"
-          allow="camera; microphone; geolocation"
-        />
-      </View>
+      <SafeAreaProvider>
+        <View style={styles.container}>
+          <StatusBar barStyle="light-content" backgroundColor="#0b0a10" />
+          <iframe
+            id="wwhs-iframe"
+            src={WEBSITE_URL}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              backgroundColor: '#0b0a10',
+            }}
+            title="WWHS? x NITH"
+            allow="camera; microphone; geolocation"
+          />
+        </View>
+      </SafeAreaProvider>
     );
   }
 
   // Native iOS / Android Mobile Render
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0b0a10" />
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#0b0a10" />
 
-      <WebView
-        ref={webViewRef}
-        source={{ uri: WEBSITE_URL }}
-        userAgent={CUSTOM_USER_AGENT}
-        style={styles.webview}
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-        thirdPartyCookiesEnabled={true}
-        sharedCookiesEnabled={true}
-        originWhitelist={['*']}
-        allowsInlineMediaPlayback={true}
-        mediaPlaybackRequiresUserAction={false}
-        startInLoadingState={true}
-        androidLayerType="hardware"
-        mixedContentMode="always"
-        setSupportMultipleWindows={false}
-        allowsBackForwardNavigationGestures={true}
-        overScrollMode="never"
-        onNavigationStateChange={(navState: any) => {
-          setCanGoBack(navState.canGoBack);
-        }}
-        onLoadStart={() => {
-          setHasError(false);
-        }}
-        onError={() => {
-          setHasError(true);
-        }}
-        renderLoading={() => (
-          <View style={styles.loadingOverlay}>
-            <Image source={require('./assets/icon.png')} style={styles.splashLogo} />
-            <Text style={styles.brandTitle}>WWHS? x NITH</Text>
-            <ActivityIndicator size="large" color="#22c55e" style={{ marginTop: 20 }} />
+        <WebView
+          ref={webViewRef}
+          source={{ uri: WEBSITE_URL }}
+          userAgent={CUSTOM_USER_AGENT}
+          style={styles.webview}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          thirdPartyCookiesEnabled={true}
+          sharedCookiesEnabled={true}
+          originWhitelist={['*']}
+          allowsInlineMediaPlayback={true}
+          mediaPlaybackRequiresUserAction={false}
+          startInLoadingState={true}
+          mixedContentMode="always"
+          setSupportMultipleWindows={false}
+          allowsBackForwardNavigationGestures={true}
+          overScrollMode="never"
+          cacheEnabled={true}
+          cacheMode="LOAD_DEFAULT"
+          onRenderProcessGone={(syntheticEvent: any): boolean => {
+            console.log('WebView render process gone, reloading...', syntheticEvent);
+            webViewRef.current?.reload();
+            return true;
+          }}
+          onNavigationStateChange={(navState: any) => {
+            setCanGoBack(navState.canGoBack);
+          }}
+          onLoadStart={() => {
+            setHasError(false);
+          }}
+          onError={() => {
+            setHasError(true);
+          }}
+          renderLoading={() => (
+            <View style={styles.loadingOverlay}>
+              <Image source={require('./assets/icon.png')} style={styles.splashLogo} />
+              <Text style={styles.brandTitle}>WWHS? x NITH</Text>
+              <ActivityIndicator size="large" color="#22c55e" style={{ marginTop: 20 }} />
+            </View>
+          )}
+        />
+
+        {hasError && (
+          <View style={styles.errorOverlay}>
+            <Image source={require('./assets/icon.png')} style={styles.errorLogo} />
+            <Text style={styles.errorTitle}>Connection Failed</Text>
+            <Text style={styles.errorText}>
+              Unable to connect to WWHS? x NITH servers. Please check your internet connection.
+            </Text>
+            <TouchableOpacity style={styles.retryButton} onPress={handleReload} activeOpacity={0.88}>
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
           </View>
         )}
-      />
-
-      {hasError && (
-        <View style={styles.errorOverlay}>
-          <Image source={require('./assets/icon.png')} style={styles.errorLogo} />
-          <Text style={styles.errorTitle}>Connection Failed</Text>
-          <Text style={styles.errorText}>
-            Unable to connect to WWHS? x NITH servers. Please check your internet connection.
-          </Text>
-          <TouchableOpacity style={styles.retryButton} onPress={handleReload} activeOpacity={0.88}>
-            <Text style={styles.retryText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
