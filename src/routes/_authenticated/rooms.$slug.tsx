@@ -117,8 +117,8 @@ function RoomChat() {
   // Fetch messages
   useEffect(() => {
     if (!roomId) return;
-    api.get(`/chat/${roomId}`).then(({ data }) => {
-      setMessages(data.messages ?? []);
+    api.get(`/chat/chat-history/${roomId}`).then(({ data }) => {
+      setMessages(Array.isArray(data) ? data : (data?.messages ?? []));
     }).catch(() => {});
   }, [roomId]);
 
@@ -530,7 +530,7 @@ function RoomChat() {
       {/* Composer */}
       <form
         onSubmit={send}
-        className="sticky bottom-0 px-4 md:px-8 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] md:pb-4 pt-3"
+        className="sticky bottom-0 px-4 md:px-8 pb-[calc(env(safe-area-inset-bottom)+1rem)] md:pb-4 pt-3 bg-background/80 md:bg-transparent backdrop-blur-md md:backdrop-blur-none"
       >
         <div className="flex items-center gap-2 rounded-full border border-border bg-card px-2 py-2 backdrop-blur-xl">
           {/* Attachment menu */}
@@ -557,13 +557,15 @@ function RoomChat() {
                   >
                     <ImageIcon className="size-3.5" /> Image
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { setShowCode(true); setShowAttach(false); }}
-                    className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs text-white/60 hover:bg-white/5"
-                  >
-                    <Code2 className="size-3.5" /> Code
-                  </button>
+                  {roomTitle.toLowerCase().includes("tech") && (
+                    <button
+                      type="button"
+                      onClick={() => { setShowCode(true); setShowAttach(false); }}
+                      className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs text-white/60 hover:bg-white/5"
+                    >
+                      <Code2 className="size-3.5" /> Code
+                    </button>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
