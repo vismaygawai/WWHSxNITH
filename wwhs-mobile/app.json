@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "WWHS? x NITH",
+    "slug": "wwhs-x-nith",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#0b0a10"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "dev.vismay.wwhs"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0b0a10"
+      },
+      "package": "dev.vismay.wwhs"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#22c55e"
+        }
+      ]
+    ]
+  }
+}
