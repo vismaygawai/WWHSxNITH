@@ -244,7 +244,21 @@ function RoomChat() {
     setSending(true);
 
     try {
-      await api.post(`/chat/${roomId}`, { text: body });
+      const { data: savedMsg } = await api.post(`/chat/${roomId}`, { text: body });
+      setMessages((prev) => {
+        // Prevent duplicate if socket beat the HTTP response
+        if (prev.some((m) => m._id === savedMsg._id)) {
+          return prev.filter(m => m._id !== optimistic._id);
+        }
+        // Replace optimistic message
+        const idx = prev.findIndex((m) => m._id === optimistic._id);
+        if (idx !== -1) {
+          const next = [...prev];
+          next[idx] = savedMsg;
+          return next;
+        }
+        return [...prev, savedMsg];
+      });
     } catch {
       setMessages((prev) => prev.map((m) => m._id === optimistic._id ? { ...m, _status: "error" } : m));
       toast.error("Failed to send message");
@@ -285,8 +299,12 @@ function RoomChat() {
       const formData = new FormData();
       formData.append("image", compressedFile);
 
-      await api.post(`/chat/${roomId}`, formData, {
+      const { data: savedMsg } = await api.post(`/chat/${roomId}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
+      });
+      setMessages((prev) => {
+        if (prev.some((m) => m._id === savedMsg._id)) return prev;
+        return [...prev, savedMsg];
       });
       setImagePreview(null);
     } catch (err: any) {
@@ -310,12 +328,16 @@ function RoomChat() {
     e.target.value = "";
   }
 
-  // Send code block
   function handleCodeSend(code: string) {
     if (!roomId || !user) return;
     const body = "```\n" + code + "\n```";
     setDraft("");
-    api.post(`/chat/${roomId}`, { text: body }).catch(() => toast.error("Failed to send code"));
+    api.post(`/chat/${roomId}`, { text: body }).then(({ data: savedMsg }) => {
+      setMessages((prev) => {
+        if (prev.some((m) => m._id === savedMsg._id)) return prev;
+        return [...prev, savedMsg];
+      });
+    }).catch(() => toast.error("Failed to send code"));
     setShowCode(false);
   }
 
