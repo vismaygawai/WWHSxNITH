@@ -36,7 +36,9 @@ function AuthedLayout() {
     if (typeof document === "undefined") return;
     const root = document.documentElement;
     root.classList.add("dark");
-    return () => { root.classList.remove("dark"); };
+    return () => {
+      root.classList.remove("dark");
+    };
   }, []);
 
   if (!ready || !user) {
@@ -69,7 +71,10 @@ function AuthedLayout() {
       )}
 
       {/* Animated DarkVeil — persistent across routes */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-background">
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-background"
+      >
         <DarkVeil
           hueShift={140}
           noiseIntensity={0}

@@ -1,36 +1,38 @@
 import { Types, Schema, model } from "mongoose";
 
-export interface IProject{
-  _id: Types.ObjectId,
-  user: Types.ObjectId,
-  title: string,
-  description: string,
-  tags: string[],
-  githubLink: string,
-  liveLink: string,
+export interface IProject {
+  _id: Types.ObjectId;
+  user: Types.ObjectId;
+  title: string;
+  description: string;
+  tags: string[];
+  githubLink: string;
+  liveLink: string;
 }
 
-const projectSchema: Schema = new Schema({
-  user: {
+const projectSchema: Schema = new Schema(
+  {
+    user: {
       type: Schema.Types.ObjectId,
-      ref: 'Auth',
-  },
-  title: {
+      ref: "Auth",
+    },
+    title: {
       type: String,
       required: true,
-  },
-  tags: {
+    },
+    tags: {
       type: [String],
-  },
-  githubLink: {
+    },
+    githubLink: {
       type: String,
       required: true,
-  },
-  liveLink: {
+    },
+    liveLink: {
       type: String,
       required: false,
-  }
-}, { timestamps: true } );
+    },
+  },
+  { timestamps: true },
+);
 
 export default model<IProject>("Project", projectSchema);
-

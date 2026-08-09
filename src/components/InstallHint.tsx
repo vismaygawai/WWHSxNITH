@@ -21,7 +21,8 @@ export default function InstallHint() {
     const isIOS = /iPhone|iPad|iPod/.test(ua);
     const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
     // @ts-expect-error iOS-only standalone flag
-    const inStandalone = window.navigator.standalone === true ||
+    const inStandalone =
+      window.navigator.standalone === true ||
       window.matchMedia("(display-mode: standalone)").matches;
     if (isIOS && isSafari && !inStandalone) {
       const t = setTimeout(() => setShow(true), 1200);
@@ -30,7 +31,9 @@ export default function InstallHint() {
   }, []);
 
   function dismiss() {
-    try { localStorage.setItem(DISMISS_KEY, "1"); } catch {}
+    try {
+      localStorage.setItem(DISMISS_KEY, "1");
+    } catch {}
     setShow(false);
   }
 
@@ -55,7 +58,8 @@ export default function InstallHint() {
               </p>
               <p className="mt-1 text-[11.5px] text-white/65 leading-snug">
                 Tap <Share className="inline size-3 -mt-0.5 mx-0.5" /> Share, then
-                <span className="font-medium text-white/85"> Add to Home Screen</span> to lose the Safari bars.
+                <span className="font-medium text-white/85"> Add to Home Screen</span> to lose the
+                Safari bars.
               </p>
             </div>
             <button

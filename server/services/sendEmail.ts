@@ -1,31 +1,32 @@
 import nodemailer from "nodemailer";
 import { generateToken } from "../services/authToken.js";
+import { IAuth } from "../models/auth.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-export const sendEmail = async (user: any): Promise<boolean> => {
-    const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.MAIL_USER!,
-            pass: process.env.MAIL_PASS!,
-        }
-    })
+export const sendEmail = async (user: Pick<IAuth, "name" | "email" | "_id">): Promise<boolean> => {
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.MAIL_USER!,
+      pass: process.env.MAIL_PASS!,
+    },
+  });
 
-    const token = generateToken(user);
-    const FRONTEND_URL = process.env.FRONTEND_PROD_URL;
-    const brand = "WWHS? x NITH";
-    const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`;
+  const token = generateToken(user);
+  const FRONTEND_URL = process.env.FRONTEND_PROD_URL;
+  const brand = "WWHS? x NITH";
+  const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`;
 
-    await transporter.sendMail({
-        from: `"${brand}" <${process.env.MAIL_USER!}>`,
-        to: `${user.email}`,
-        subject: `Reset your ${brand} password`,
-        text: `Hello,\n\nWe received a request to reset your ${brand} account password. Visit the link below to choose a new password:\n${resetUrl}\n\nIf you did not request a password reset, please ignore this email.`,
-        html: `
+  await transporter.sendMail({
+    from: `"${brand}" <${process.env.MAIL_USER!}>`,
+    to: `${user.email}`,
+    subject: `Reset your ${brand} password`,
+    text: `Hello,\n\nWe received a request to reset your ${brand} account password. Visit the link below to choose a new password:\n${resetUrl}\n\nIf you did not request a password reset, please ignore this email.`,
+    html: `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -114,7 +115,7 @@ export const sendEmail = async (user: any): Promise<boolean> => {
             </div>
         </body>
         </html>
-    `
-    });
-    return true;
-}
+    `,
+  });
+  return true;
+};

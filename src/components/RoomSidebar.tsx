@@ -95,7 +95,10 @@ export default function RoomSidebar({ open, onClose }: RoomSidebarProps) {
                           transition={{ type: "spring", stiffness: 380, damping: 28 }}
                         />
                       )}
-                      <MessagesSquare className="size-4 relative z-10 shrink-0" strokeWidth={active ? 2.4 : 2} />
+                      <MessagesSquare
+                        className="size-4 relative z-10 shrink-0"
+                        strokeWidth={active ? 2.4 : 2}
+                      />
                       <span className="relative z-10 truncate">{room.title}</span>
                     </Link>
                   );

@@ -19,8 +19,11 @@ export const handleUserSignUp = async (req: Request, res: Response) => {
     }
 
     const existingUser = await Auth.findOne({ email });
-    if(existingUser) {
-      return res.status(400).json({ message: "You already have an account, login instead OR if you want to verify your email then check your email inbox" });
+    if (existingUser) {
+      return res.status(400).json({
+        message:
+          "You already have an account, login instead OR if you want to verify your email then check your email inbox",
+      });
     }
 
     const salt = generateSalt();
@@ -46,7 +49,10 @@ export const handleUserSignUp = async (req: Request, res: Response) => {
 export const handleVerifyEmail = async (req: Request, res: Response) => {
   try {
     const queryHash = req.query.hash as string;
-    const decoder = jwt.verify(queryHash, process.env.JWT_ENCRYP_KEY || "wwhs_super_secret_jwt_key_2026_nith_secure") as {
+    const decoder = jwt.verify(
+      queryHash,
+      process.env.JWT_ENCRYP_KEY || "wwhs_super_secret_jwt_key_2026_nith_secure",
+    ) as {
       email: string;
       name: string;
     };
@@ -54,9 +60,7 @@ export const handleVerifyEmail = async (req: Request, res: Response) => {
     const user = await Auth.findOne({ email: decoder.email });
 
     if (!user) {
-      return res
-        .status(400)
-        .json({ message: "User with that email is not registered" });
+      return res.status(400).json({ message: "User with that email is not registered" });
     }
 
     user.isVerified = true;
@@ -64,13 +68,13 @@ export const handleVerifyEmail = async (req: Request, res: Response) => {
 
     const token = generateToken(user);
     res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: 30 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    return res.status(200).json({ message: "Email verified successfully", token, user });
+    return res.status(200).json({ message: "Email verified successfully", user });
   } catch (error) {
     console.error("Error in handleVerifyEmail:", error);
     return res.status(400).json({ message: "Invalid or expired verification link." });
@@ -127,7 +131,6 @@ export const handleUserLogIn = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       message: "Logged in successfully",
-      token,
       user: {
         _id: existingUser._id,
         name: existingUser.name,
@@ -151,16 +154,12 @@ export const handleForgetPassViaOld = async (req: Request, res: Response) => {
   try {
     const user = await Auth.findOne({ email });
     if (!user) {
-      return res
-        .status(400)
-        .json({ message: "Account with that email does not exists" });
+      return res.status(400).json({ message: "Account with that email does not exists" });
     }
 
     const oldHash = hashPassword(oldPassword, user?.salt);
     if (oldHash !== user?.password) {
-      return res
-        .status(400)
-        .json({ message: "You have entered a wrong password" });
+      return res.status(400).json({ message: "You have entered a wrong password" });
     }
 
     const newSalt = generateSalt();
@@ -177,10 +176,7 @@ export const handleForgetPassViaOld = async (req: Request, res: Response) => {
 };
 
 // via nodemailer
-export const handlerForgetPassViaEmail = async (
-  req: Request,
-  res: Response
-) => {
+export const handlerForgetPassViaEmail = async (req: Request, res: Response) => {
   const { email } = req.body;
   if (!email) {
     return res.status(400).json({ message: "Enter all the required fields" });
@@ -189,16 +185,12 @@ export const handlerForgetPassViaEmail = async (
     const user = await Auth.findOne({ email });
 
     if (!user) {
-      return res
-        .status(400)
-        .json({ message: "This email isn't registered to any accounts" });
+      return res.status(400).json({ message: "This email isn't registered to any accounts" });
     }
 
     const status = sendEmail(user);
     if (!status) {
-      return res
-        .status(400)
-        .json({ message: "Email couldn't be sent at the moment" });
+      return res.status(400).json({ message: "Email couldn't be sent at the moment" });
     }
     return res.status(200).json({ message: `Reset link sent to your email` });
   } catch (error) {
@@ -243,113 +235,116 @@ export const changeUserPass = async (req: Request, res: Response) => {
   }
 };
 
-export const handleUserLogOut = async(req: Request, res: Response) => {
-    try {
-        res.clearCookie('token');
-        return res.status(200).json({ message: "Logged out successfully" });
-    }catch(error) {
-        console.log(`${error}`);
-        throw new Error(`While clearing the token from cookies`);
-    }
+export const handleUserLogOut = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie("token");
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.log(`${error}`);
+    throw new Error(`While clearing the token from cookies`);
+  }
 };
 
 export const getMembers = async (req: Request, res: Response) => {
-    try {
-        const users = await Auth.find({ isVerified: true }).select("name email");
-        return res.status(200).json({ members: users });
-    } catch (error) {
-        console.log(`${error}`);
-        return res.status(500).json({ message: "Failed to fetch members" });
-    }
+  try {
+    const users = await Auth.find({ isVerified: true }).select("name email");
+    return res.status(200).json({ members: users });
+  } catch (error) {
+    console.log(`${error}`);
+    return res.status(500).json({ message: "Failed to fetch members" });
+  }
 };
 
 export const handleUpdateProfile = async (req: Request, res: Response) => {
-    try {
-        const userId = req.user?._id;
-        const { name } = req.body;
-        if (!name || !name.trim()) {
-            return res.status(400).json({ message: "Name is required" });
-        }
-        const updatedUser = await Auth.findByIdAndUpdate(
-            userId,
-            { name: name.trim() },
-            { new: true }
-        ).select("name email isVerified");
-        
-        return res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
-    } catch (error) {
-        console.log(`${error}`);
-        return res.status(500).json({ message: "Failed to update profile" });
+  try {
+    const userId = req.user?._id;
+    const { name } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: "Name is required" });
     }
+    const updatedUser = await Auth.findByIdAndUpdate(
+      userId,
+      { name: name.trim() },
+      { new: true },
+    ).select("name email isVerified");
+
+    return res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
+  } catch (error) {
+    console.log(`${error}`);
+    return res.status(500).json({ message: "Failed to update profile" });
+  }
 };
 
 export const handleGoogleAuth = async (req: Request, res: Response) => {
-    try {
-        const { credential, email: googleEmail, name: googleName } = req.body;
+  try {
+    const { credential, email: googleEmail, name: googleName } = req.body;
 
-        let email = googleEmail;
-        let name = googleName;
+    let email = googleEmail;
+    let name = googleName;
 
-        if (credential) {
-            try {
-                const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
-                if (response.ok) {
-                    const payload = await response.json();
-                    if (payload.email) email = payload.email;
-                    if (payload.name) name = payload.name;
-                }
-            } catch {
-                // Ignore fetch error fallback
-            }
+    if (credential) {
+      try {
+        const response = await fetch(
+          `https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`,
+        );
+        if (response.ok) {
+          const payload = await response.json();
+          if (payload.email) email = payload.email;
+          if (payload.name) name = payload.name;
         }
-
-        if (!email) {
-            return res.status(400).json({ message: "Google authentication failed: Email missing" });
-        }
-
-        const mail = email.trim().toLowerCase();
-
-        if (!mail.endsWith("@nith.ac.in")) {
-            return res.status(400).json({ message: "Only @nith.ac.in Google accounts can join WWHS? x NITH." });
-        }
-
-        let user = await Auth.findOne({ email: mail });
-
-        if (!user) {
-            const randomPassword = Math.random().toString(36).slice(-10) + "A1!";
-            const hashPassword = await bcrypt.hash(randomPassword, 10);
-            user = await Auth.create({
-                name: name || mail.split("@")[0],
-                email: mail,
-                password: hashPassword,
-                isVerified: true,
-            });
-        } else if (!user.isVerified) {
-            user.isVerified = true;
-            await user.save();
-        }
-
-        const token = generateToken(user);
-
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
-
-        return res.status(200).json({
-            message: "Google login successful",
-            token,
-            user: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                isVerified: true,
-            }
-        });
-    } catch (error) {
-        console.error("Google Auth error:", error);
-        return res.status(500).json({ message: "Google authentication failed" });
+      } catch {
+        // Ignore fetch error fallback
+      }
     }
+
+    if (!email) {
+      return res.status(400).json({ message: "Google authentication failed: Email missing" });
+    }
+
+    const mail = email.trim().toLowerCase();
+
+    if (!mail.endsWith("@nith.ac.in")) {
+      return res
+        .status(400)
+        .json({ message: "Only @nith.ac.in Google accounts can join WWHS? x NITH." });
+    }
+
+    let user = await Auth.findOne({ email: mail });
+
+    if (!user) {
+      const randomPassword = Math.random().toString(36).slice(-10) + "A1!";
+      const hashPassword = await bcrypt.hash(randomPassword, 10);
+      user = await Auth.create({
+        name: name || mail.split("@")[0],
+        email: mail,
+        password: hashPassword,
+        isVerified: true,
+      });
+    } else if (!user.isVerified) {
+      user.isVerified = true;
+      await user.save();
+    }
+
+    const token = generateToken(user);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      message: "Google login successful",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isVerified: true,
+      },
+    });
+  } catch (error) {
+    console.error("Google Auth error:", error);
+    return res.status(500).json({ message: "Google authentication failed" });
+  }
 };

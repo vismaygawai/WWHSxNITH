@@ -1,12 +1,17 @@
-import { JwtPayload } from "jsonwebtoken";
-import { IAuth } from "../models/auth.js";
+import { Types } from "mongoose";
 
 declare global {
-    namespace Express {
-        interface Request {
-            user?: IAuth;
-        }
+  namespace Express {
+    interface Request {
+      user?: {
+        _id: Types.ObjectId;
+        name: string;
+        email: string;
+        isVerified?: boolean;
+        password?: string;
+        salt?: string;
+        save?: () => Promise<unknown>;
+      };
     }
+  }
 }
-
-export {};

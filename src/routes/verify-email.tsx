@@ -32,7 +32,9 @@ function VerifyEmail() {
       })
       .catch((err) => {
         setStatus("error");
-        setMessage(err.response?.data?.message || "Verification failed. The link may have expired.");
+        setMessage(
+          err.response?.data?.message || "Verification failed. The link may have expired.",
+        );
       });
   }, []);
 

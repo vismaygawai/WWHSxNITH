@@ -32,7 +32,10 @@ export function usePullToRefresh(
     if (typeof window === "undefined") return;
     if (!window.matchMedia("(pointer: coarse)").matches) return;
 
-    const apply = (v: number) => { pullRef.current = v; setPull(v); };
+    const apply = (v: number) => {
+      pullRef.current = v;
+      setPull(v);
+    };
 
     const onTouchStart = (e: TouchEvent) => {
       if (refreshingRef.current) return;
@@ -44,7 +47,10 @@ export function usePullToRefresh(
     const onTouchMove = (e: TouchEvent) => {
       if (!active.current || startY.current == null) return;
       const dy = e.touches[0].clientY - startY.current;
-      if (dy <= 0) { apply(0); return; }
+      if (dy <= 0) {
+        apply(0);
+        return;
+      }
       const eased = Math.min(max, dy * 0.55);
       apply(eased);
       if (dy > 8 && e.cancelable) e.preventDefault();
@@ -56,7 +62,9 @@ export function usePullToRefresh(
       if (finalPull >= threshold && !refreshingRef.current) {
         setRefreshing(true);
         apply(threshold);
-        try { await cb.current(); } finally {
+        try {
+          await cb.current();
+        } finally {
           setRefreshing(false);
           apply(0);
         }

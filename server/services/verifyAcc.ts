@@ -1,13 +1,14 @@
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import type { IAuth } from "../models/auth.js";
 import { generateToken } from "./authToken.js";
 
 dotenv.config();
 const FRONTEND_URL = process.env.FRONTEND_PROD_URL || "http://localhost:5173";
 const brand = "WWHS? x NITH";
 
-export const verifyAcc = async (user: any) => {
+export const verifyAcc = async (user: Pick<IAuth, "name" | "email" | "_id">) => {
   try {
     if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
       console.warn("MAIL_USER or MAIL_PASS not set. Skipping verification email sending.");

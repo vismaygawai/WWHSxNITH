@@ -26,13 +26,11 @@ export function useAuth() {
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem("user");
-      const storedToken = localStorage.getItem("token");
-      if (storedUser && storedToken) {
+      if (storedUser) {
         setUser(JSON.parse(storedUser));
       }
     } catch {
       localStorage.removeItem("user");
-      localStorage.removeItem("token");
     }
     setLoading(false);
   }, []);
@@ -40,13 +38,12 @@ export function useAuth() {
   // Cross-tab sync via storage events
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === "token") {
+      if (e.key === "user") {
         if (!e.newValue) {
           setUser(null);
         } else {
           try {
-            const u = localStorage.getItem("user");
-            if (u) setUser(JSON.parse(u));
+            setUser(JSON.parse(e.newValue));
           } catch {
             setUser(null);
           }
@@ -59,7 +56,6 @@ export function useAuth() {
 
   const login = useCallback(async (email: string, password: string) => {
     const { data } = await api.post("/auth/login", { email, password });
-    localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
     setUser(data.user);
     return data;
@@ -77,13 +73,10 @@ export function useAuth() {
       // Logout endpoint may fail — still clear local state
     }
     disconnectSocket();
-    localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
     // Trigger AuthBridge in __root.tsx
-    window.dispatchEvent(
-      new StorageEvent("storage", { key: "token", newValue: null }),
-    );
+    window.dispatchEvent(new StorageEvent("storage", { key: "user", newValue: null }));
   }, []);
 
   return {

@@ -1,7 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { VolumeX, Image as ImageIcon, MessageSquarePlus, Github, Download, ExternalLink } from "lucide-react";
+import {
+  VolumeX,
+  Image as ImageIcon,
+  MessageSquarePlus,
+  Github,
+  Download,
+  ExternalLink,
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import DarkVeil from "@/components/DarkVeil";
 import PublicNav from "@/components/PublicNav";

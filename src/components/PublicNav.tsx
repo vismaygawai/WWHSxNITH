@@ -13,7 +13,11 @@ export default function PublicNav() {
       <div className="w-full flex items-center justify-between px-6 md:px-10 py-3.5">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-          <img src={wwhsLogo} alt={BRAND_NAME} className="size-9 rounded-xl object-contain shadow-sm" />
+          <img
+            src={wwhsLogo}
+            alt={BRAND_NAME}
+            className="size-9 rounded-xl object-contain shadow-sm"
+          />
           <span className="text-base font-semibold tracking-tight text-white">{BRAND_NAME}</span>
         </Link>
 

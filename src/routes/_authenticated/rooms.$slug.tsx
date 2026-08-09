@@ -2,8 +2,17 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft, Loader2, SendHorizonal, Image as ImageIcon,
-  Code2, Smile, Menu, Paperclip, X, Trash2, ShieldCheck,
+  ArrowLeft,
+  Loader2,
+  SendHorizonal,
+  Image as ImageIcon,
+  Code2,
+  Smile,
+  Menu,
+  Paperclip,
+  X,
+  Trash2,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,7 +51,8 @@ function senderId(msg: ChatMessage): string {
 }
 
 function avatarUrl(id: string, email: string): string {
-  const savedSeed = typeof localStorage !== "undefined" ? localStorage.getItem(`avatar_seed_${id}`) : null;
+  const savedSeed =
+    typeof localStorage !== "undefined" ? localStorage.getItem(`avatar_seed_${id}`) : null;
   return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(savedSeed || email || "Felix")}`;
 }
 
@@ -117,9 +127,12 @@ function RoomChat() {
   // Fetch messages
   useEffect(() => {
     if (!roomId) return;
-    api.get(`/chat/chat-history/${roomId}`).then(({ data }) => {
-      setMessages(Array.isArray(data) ? data : (data?.messages ?? []));
-    }).catch(() => {});
+    api
+      .get(`/chat/chat-history/${roomId}`)
+      .then(({ data }) => {
+        setMessages(Array.isArray(data) ? data : (data?.messages ?? []));
+      })
+      .catch(() => {});
   }, [roomId]);
 
   // Socket.IO setup
@@ -134,7 +147,9 @@ function RoomChat() {
       if (msg.room === roomId) {
         setMessages((prev) => {
           // Replace optimistic message if it exists
-          const idx = prev.findIndex((m) => m._optimistic && m.text === msg.text && senderId(m) === senderId(msg));
+          const idx = prev.findIndex(
+            (m) => m._optimistic && m.text === msg.text && senderId(m) === senderId(msg),
+          );
           if (idx !== -1) {
             const next = [...prev];
             next[idx] = msg;
@@ -154,7 +169,11 @@ function RoomChat() {
           next.set(uid, uid);
           // Auto-clear after 3 seconds
           setTimeout(() => {
-            setTypingUsers((p) => { const n = new Map(p); n.delete(uid); return n; });
+            setTypingUsers((p) => {
+              const n = new Map(p);
+              n.delete(uid);
+              return n;
+            });
           }, 3000);
         } else {
           next.delete(uid);
@@ -248,7 +267,7 @@ function RoomChat() {
       setMessages((prev) => {
         // Prevent duplicate if socket beat the HTTP response
         if (prev.some((m) => m._id === savedMsg._id)) {
-          return prev.filter(m => m._id !== optimistic._id);
+          return prev.filter((m) => m._id !== optimistic._id);
         }
         // Replace optimistic message
         const idx = prev.findIndex((m) => m._id === optimistic._id);
@@ -260,7 +279,9 @@ function RoomChat() {
         return [...prev, savedMsg];
       });
     } catch {
-      setMessages((prev) => prev.map((m) => m._id === optimistic._id ? { ...m, _status: "error" } : m));
+      setMessages((prev) =>
+        prev.map((m) => (m._id === optimistic._id ? { ...m, _status: "error" } : m)),
+      );
       toast.error("Failed to send message");
     }
     setSending(false);
@@ -332,12 +353,15 @@ function RoomChat() {
     if (!roomId || !user) return;
     const body = "```\n" + code + "\n```";
     setDraft("");
-    api.post(`/chat/${roomId}`, { text: body }).then(({ data: savedMsg }) => {
-      setMessages((prev) => {
-        if (prev.some((m) => m._id === savedMsg._id)) return prev;
-        return [...prev, savedMsg];
-      });
-    }).catch(() => toast.error("Failed to send code"));
+    api
+      .post(`/chat/${roomId}`, { text: body })
+      .then(({ data: savedMsg }) => {
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === savedMsg._id)) return prev;
+          return [...prev, savedMsg];
+        });
+      })
+      .catch(() => toast.error("Failed to send code"));
     setShowCode(false);
   }
 
@@ -353,13 +377,20 @@ function RoomChat() {
   const typingList = Array.from(typingUsers.keys()).filter((uid) => uid !== user?._id);
 
   if (roomLoading) {
-    return <div className="grid place-items-center py-20"><Loader2 className="size-5 animate-spin text-primary" /></div>;
+    return (
+      <div className="grid place-items-center py-20">
+        <Loader2 className="size-5 animate-spin text-primary" />
+      </div>
+    );
   }
   if (!room) {
     return (
       <div className="px-4 md:px-8 py-16 text-center">
         <p className="text-white/60">This room doesn't exist.</p>
-        <Link to="/rooms" className="mt-4 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground">
+        <Link
+          to="/rooms"
+          className="mt-4 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+        >
           Back to rooms
         </Link>
       </div>
@@ -380,7 +411,10 @@ function RoomChat() {
         >
           <Menu className="size-4" />
         </button>
-        <Link to="/rooms" className="hidden md:grid -ml-1 size-9 place-items-center rounded-full bg-white/5 text-white/70">
+        <Link
+          to="/rooms"
+          className="hidden md:grid -ml-1 size-9 place-items-center rounded-full bg-white/5 text-white/70"
+        >
           <ArrowLeft className="size-4" />
         </Link>
         <div className="grid size-9 place-items-center rounded-2xl bg-primary/15 text-lg ring-1 ring-primary/25">
@@ -388,7 +422,9 @@ function RoomChat() {
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-semibold text-white leading-tight truncate">{roomTitle}</div>
-          {room.description && <div className="text-xs text-white/45 truncate">{room.description}</div>}
+          {room.description && (
+            <div className="text-xs text-white/45 truncate">{room.description}</div>
+          )}
         </div>
         <div className="flex items-center gap-1 text-xs text-white/35">
           <span className="size-2 rounded-full bg-emerald-400 inline-block" />
@@ -399,7 +435,9 @@ function RoomChat() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 space-y-3">
         {messages.length === 0 ? (
-          <p className="py-10 text-center text-sm text-white/45">No messages yet — say something first.</p>
+          <p className="py-10 text-center text-sm text-white/45">
+            No messages yet — say something first.
+          </p>
         ) : (
           grouped.map((item, i) => {
             if (item.type === "date") {
@@ -427,7 +465,10 @@ function RoomChat() {
                   className={`size-8 shrink-0 rounded-full object-cover bg-primary/10 ${onlineUsers.has(senderId(m)) ? "ring-2 ring-emerald-400/60" : ""}`}
                 />
                 <div className={`max-w-[min(34rem,80%)] ${mine ? "text-right" : ""}`}>
-                  <div className="flex items-center gap-1.5 text-[11px] text-white/40" style={{ justifyContent: mine ? "flex-end" : "flex-start" }}>
+                  <div
+                    className="flex items-center gap-1.5 text-[11px] text-white/40"
+                    style={{ justifyContent: mine ? "flex-end" : "flex-start" }}
+                  >
                     <span className="font-medium text-white/60">{mine ? "You" : name}</span>
                     {isSenderAdmin && (
                       <span className="inline-flex items-center gap-0.5 rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-semibold text-amber-400 border border-amber-500/30">
@@ -435,8 +476,12 @@ function RoomChat() {
                       </span>
                     )}
                     <span>{timeLabel(m.createdAt)}</span>
-                    {m._status === "sending" && <Loader2 className="size-3 animate-spin text-white/30" />}
-                    {m._status === "error" && <span className="text-destructive text-[10px]">Failed</span>}
+                    {m._status === "sending" && (
+                      <Loader2 className="size-3 animate-spin text-white/30" />
+                    )}
+                    {m._status === "error" && (
+                      <span className="text-destructive text-[10px]">Failed</span>
+                    )}
                     {canDelete && (
                       <button
                         type="button"
@@ -449,7 +494,11 @@ function RoomChat() {
                     )}
                   </div>
                   {(m.image || (m.imageURL && m.imageURL.trim().length > 1)) && (
-                    <button type="button" onClick={() => setViewImage(m.image || m.imageURL!)} className="mt-1 block">
+                    <button
+                      type="button"
+                      onClick={() => setViewImage(m.image || m.imageURL!)}
+                      className="mt-1 block"
+                    >
                       <img
                         src={m.image || m.imageURL}
                         alt=""
@@ -506,7 +555,10 @@ function RoomChat() {
               <img src={imagePreview.url} alt="" className="max-h-32 rounded-xl object-contain" />
               <button
                 type="button"
-                onClick={() => { URL.revokeObjectURL(imagePreview.url); setImagePreview(null); }}
+                onClick={() => {
+                  URL.revokeObjectURL(imagePreview.url);
+                  setImagePreview(null);
+                }}
                 className="absolute -top-2 -right-2 grid size-6 place-items-center rounded-full bg-destructive text-destructive-foreground text-xs"
               >
                 <X className="size-3" />
@@ -559,7 +611,10 @@ function RoomChat() {
           <div className="relative">
             <button
               type="button"
-              onClick={() => { setShowAttach(!showAttach); setShowEmoji(false); }}
+              onClick={() => {
+                setShowAttach(!showAttach);
+                setShowEmoji(false);
+              }}
               className="grid size-9 shrink-0 place-items-center rounded-full text-white/45 hover:text-white/70 hover:bg-white/5"
             >
               <Paperclip className="size-4" />
@@ -582,7 +637,10 @@ function RoomChat() {
                   {roomTitle.toLowerCase().includes("tech") && (
                     <button
                       type="button"
-                      onClick={() => { setShowCode(true); setShowAttach(false); }}
+                      onClick={() => {
+                        setShowCode(true);
+                        setShowAttach(false);
+                      }}
                       className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs text-white/60 hover:bg-white/5"
                     >
                       <Code2 className="size-3.5" /> Code
@@ -593,11 +651,20 @@ function RoomChat() {
             </AnimatePresence>
           </div>
 
-          <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleFileSelect} />
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
 
           <button
             type="button"
-            onClick={() => { setShowEmoji(!showEmoji); setShowAttach(false); }}
+            onClick={() => {
+              setShowEmoji(!showEmoji);
+              setShowAttach(false);
+            }}
             className="grid size-9 shrink-0 place-items-center rounded-full text-white/45 hover:text-white/70 hover:bg-white/5"
           >
             <Smile className="size-4" />
@@ -605,7 +672,10 @@ function RoomChat() {
 
           <input
             value={draft}
-            onChange={(e) => { setDraft(e.target.value); emitTyping(); }}
+            onChange={(e) => {
+              setDraft(e.target.value);
+              emitTyping();
+            }}
             placeholder={`Message #${roomTitle}`}
             maxLength={4000}
             className="flex-1 bg-transparent px-3 text-sm text-white placeholder:text-white/35 outline-none"
@@ -616,7 +686,11 @@ function RoomChat() {
             aria-label="Send message"
             className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
           >
-            {sending ? <Loader2 className="size-4 animate-spin" /> : <SendHorizonal className="size-4" />}
+            {sending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <SendHorizonal className="size-4" />
+            )}
           </button>
         </div>
       </form>

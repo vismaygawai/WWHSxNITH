@@ -1,4 +1,4 @@
-import express, { urlencoded } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -16,10 +16,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // functions
-import { connectToMongo } from "./services/connection.js"
+import { connectToMongo } from "./services/connection.js";
 
 // routes
-import { chatRoute } from "./routes/chat.js"
+import { chatRoute } from "./routes/chat.js";
 import { authRoute } from "./routes/auth.js";
 import { roomRoute } from "./routes/room.js";
 import { featureRoute } from "./routes/feature.js";
@@ -45,32 +45,30 @@ app.use(async (req, res, next) => {
 });
 
 if (!process.env.VERCEL) {
-  Promise.all([
-    import("socket.io"),
-    import("./services/socket.js")
-  ]).then(([{ Server }, { socketSetup }]) => {
-    const io = new Server(server, {
-      pingTimeout: 10000,
-      pingInterval: 5000,
-      cors: {
-        origin: (origin, callback) => {
-          if (!origin || process.env.NODE_ENV !== "production") return callback(null, true);
-          if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-          } else {
-            console.log("Socket blocked by CORS:", origin);
-            callback(new Error("Not allowed by CORS"));
-          }
+  Promise.all([import("socket.io"), import("./services/socket.js")])
+    .then(([{ Server }, { socketSetup }]) => {
+      const io = new Server(server, {
+        pingTimeout: 10000,
+        pingInterval: 5000,
+        cors: {
+          origin: (origin, callback) => {
+            if (!origin || process.env.NODE_ENV !== "production") return callback(null, true);
+            if (allowedOrigins.includes(origin)) {
+              callback(null, true);
+            } else {
+              console.log("Socket blocked by CORS:", origin);
+              callback(new Error("Not allowed by CORS"));
+            }
+          },
+          methods: ["GET", "POST"],
+          credentials: true,
         },
-        methods: ["GET", "POST"],
-        credentials: true,
-      }
-    });
+      });
 
-    app.set("io", io);
-    socketSetup(io);
-  }).catch(console.error);
-
+      app.set("io", io);
+      socketSetup(io);
+    })
+    .catch(console.error);
 
   connectToMongo()
     .then(async () => {
@@ -78,10 +76,30 @@ if (!process.env.VERCEL) {
         const count = await Room.countDocuments();
         if (count === 0) {
           await Room.insertMany([
-            { roomId: "general", title: "General", description: "Main room for general discussions", members: [] },
-            { roomId: "tech-chat", title: "Tech Chat", description: "Discuss tech, code, tools, and projects", members: [] },
-            { roomId: "announcements", title: "Announcements", description: "Official updates and announcements", members: [] },
-            { roomId: "random", title: "Random", description: "Meme sharing and casual banter", members: [] },
+            {
+              roomId: "general",
+              title: "General",
+              description: "Main room for general discussions",
+              members: [],
+            },
+            {
+              roomId: "tech-chat",
+              title: "Tech Chat",
+              description: "Discuss tech, code, tools, and projects",
+              members: [],
+            },
+            {
+              roomId: "announcements",
+              title: "Announcements",
+              description: "Official updates and announcements",
+              members: [],
+            },
+            {
+              roomId: "random",
+              title: "Random",
+              description: "Meme sharing and casual banter",
+              members: [],
+            },
           ]);
           console.log("Seeded default chat rooms: general, tech-chat, announcements, random");
         }
@@ -89,24 +107,24 @@ if (!process.env.VERCEL) {
         console.error("Error seeding default rooms:", err);
       }
     })
-    .catch((e: string) =>
-      console.log(`Database connection warning: ${e}`)
-    );
+    .catch((e: string) => console.log(`Database connection warning: ${e}`));
 }
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || process.env.NODE_ENV !== "production") return callback(null, true);
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || process.env.NODE_ENV !== "production") return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log("API blocked by CORS:", origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-}));
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("API blocked by CORS:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  }),
+);
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(compression());
@@ -117,22 +135,24 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.get("/", allowOnlyAuthenticatedUser, (req, res) => {
-  return res
-    .status(200)
-    .json({ message: "Hey welcome to the WWHS? x NITH server" });
+  return res.status(200).json({ message: "Hey welcome to the WWHS? x NITH server" });
 });
 
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { message: "Too many attempts, try again later" } });
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { message: "Too many attempts, try again later" },
+});
 app.use("/api/auth", authLimiter);
 
-app.use('/api/chat', allowOnlyAuthenticatedUser, chatRoute);
-app.use('/api/auth', authRoute);
-app.use('/api/room', allowOnlyAuthenticatedUser, roomRoute);
-app.use('/api/features', featureRoute);
-app.use('/api/blog', blogRoute);
-app.use('/api/project', projectRoute);
+app.use("/api/chat", allowOnlyAuthenticatedUser, chatRoute);
+app.use("/api/auth", authRoute);
+app.use("/api/room", allowOnlyAuthenticatedUser, roomRoute);
+app.use("/api/features", featureRoute);
+app.use("/api/blog", blogRoute);
+app.use("/api/project", projectRoute);
 
 // Serve Vite build in production
 if (process.env.NODE_ENV === "production") {
@@ -143,7 +163,7 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-app.use((err: any, req: any, res: any, next: any) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
   res.status(500).json({ message: "Internal server error" });
 });

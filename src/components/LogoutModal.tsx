@@ -42,9 +42,7 @@ export default function LogoutModal({ open, onClose, onConfirm, loading }: Logou
             <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-destructive/15 text-destructive">
               <LogOut className="size-6" />
             </div>
-            <h2 className="mt-4 text-center text-lg font-semibold text-white">
-              Sign out?
-            </h2>
+            <h2 className="mt-4 text-center text-lg font-semibold text-white">Sign out?</h2>
             <p className="mt-2 text-center text-sm text-white/55">
               You'll need to sign in again to access your rooms and messages.
             </p>

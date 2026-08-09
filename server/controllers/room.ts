@@ -23,10 +23,7 @@ export const handleCreateRoom = async (req: Request, res: Response) => {
 export const handleRoomInfo = async (req: Request, res: Response) => {
   const Id = req.params.roomId;
   try {
-    const room = await Room.find({ roomId: Id }).populate(
-      "members",
-      "name email"
-    );
+    const room = await Room.find({ roomId: Id }).populate("members", "name email");
     return res.status(200).json({ room });
   } catch (error) {
     console.log(`${error}`);
@@ -56,9 +53,7 @@ export const handleJoinedRooms = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Login first" });
   }
   try {
-    const rooms = await Room.find({ members: userId }).select(
-      "roomId title description"
-    );
+    const rooms = await Room.find({ members: userId }).select("roomId title description");
     return res.status(200).json({ rooms });
   } catch (error) {
     console.log(`${error}`);
@@ -75,4 +70,3 @@ export const handleGetAllRooms = async (req: Request, res: Response) => {
     throw new Error(`While fetching all rooms`);
   }
 };
-

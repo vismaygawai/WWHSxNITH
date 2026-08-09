@@ -1,10 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  Outlet,
-  Link,
-  createRootRouteWithContext,
-  useRouter,
-} from "@tanstack/react-router";
+import { Outlet, Link, createRootRouteWithContext, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { Toaster } from "sonner";
 
@@ -15,7 +10,10 @@ function NotFoundComponent() {
         <h1 className="text-7xl font-semibold tracking-tight text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-medium">Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">This page doesn't exist or has moved.</p>
-        <Link to="/" className="mt-6 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground">
+        <Link
+          to="/"
+          className="mt-6 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+        >
           Go home
         </Link>
       </div>
@@ -32,7 +30,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <h1 className="text-xl font-semibold">Something went wrong</h1>
         <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
         <button
-          onClick={() => { router.invalidate(); reset(); }}
+          onClick={() => {
+            router.invalidate();
+            reset();
+          }}
           className="mt-6 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
         >
           Try again
@@ -42,13 +43,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
-  {
-    component: RootComponent,
-    notFoundComponent: NotFoundComponent,
-    errorComponent: ErrorComponent,
-  },
-);
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  component: RootComponent,
+  notFoundComponent: NotFoundComponent,
+  errorComponent: ErrorComponent,
+});
 
 /**
  * AuthBridge — watches localStorage for auth changes and invalidates
@@ -57,18 +56,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
  */
 function AuthBridge() {
   const router = useRouter();
-  const lastToken = useRef<string | null>(null);
+  const lastUser = useRef<string | null>(null);
 
   useEffect(() => {
     // Sync initial state
-    lastToken.current = localStorage.getItem("token");
+    lastUser.current = localStorage.getItem("user");
 
     // Listen for storage events (cross-tab logout/login)
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === "token") {
-        const nextToken = e.newValue;
-        if (lastToken.current !== nextToken) {
-          lastToken.current = nextToken;
+      if (e.key === "user") {
+        const nextUser = e.newValue;
+        if (lastUser.current !== nextUser) {
+          lastUser.current = nextUser;
           router.invalidate();
         }
       }
@@ -89,7 +88,11 @@ function RootComponent() {
 
     const setAppHeight = () => {
       const viewportHeight = window.visualViewport?.height ?? 0;
-      const nextHeight = Math.max(window.innerHeight, viewportHeight, document.documentElement.clientHeight);
+      const nextHeight = Math.max(
+        window.innerHeight,
+        viewportHeight,
+        document.documentElement.clientHeight,
+      );
       document.documentElement.style.setProperty("--app-height", `${nextHeight}px`);
     };
 

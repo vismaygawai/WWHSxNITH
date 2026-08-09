@@ -1,6 +1,6 @@
 # WWHS? x NITH
 
-> *The perfect group icon doesn't exi........*
+> _The perfect group icon doesn't exi........_
 > A members-only, real-time live chat community platform built for NITH tech enthusiasts.
 
 ---
@@ -23,6 +23,7 @@
 ## Tech Stack
 
 ### Frontend
+
 - **Framework**: [React 19](https://react.dev/) + [Vite 7](https://vitejs.dev/)
 - **Routing**: [TanStack Router](https://tanstack.com/router)
 - **State & Data**: [TanStack Query v5](https://tanstack.com/query) + Axios
@@ -30,6 +31,7 @@
 - **Icons**: Lucide React + Emoji Picker React
 
 ### Backend
+
 - **Server**: Node.js + Express
 - **Real-time**: Socket.IO
 - **Database**: MongoDB Atlas + Mongoose
@@ -68,15 +70,16 @@ WWHSxNITH/
 
 ## The 3 Rules of WWHS?
 
-1. **1st rule of WWHS?** — *Don't talk about WWHS.*
-2. **2nd rule of WWHS?** — *If your group icon isn't cursed, you're doing it wrong.*
-3. **3rd rule of WWHS?** — *If this is your first time on WWHS, you have to post.*
+1. **1st rule of WWHS?** — _Don't talk about WWHS._
+2. **2nd rule of WWHS?** — _If your group icon isn't cursed, you're doing it wrong._
+3. **3rd rule of WWHS?** — _If this is your first time on WWHS, you have to post._
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
+
 - **Node.js** (v18 or higher)
 - **MongoDB Atlas** database URI
 - **Google OAuth 2.0 Client Credentials** (for Google Sign-In)
@@ -86,22 +89,27 @@ WWHSxNITH/
 ### Installation
 
 1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/vismaygawai/WWHSxNITH.git
    cd WWHSxNITH
    ```
 
 2. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 3. **Configure Environment Variables**:
    Copy `.env.example` to `.env`:
+
    ```bash
    cp .env.example .env
    ```
+
    Open `.env` and fill in your credentials:
+
    ```env
    MONGO_URI=your_mongodb_connection_string
    PORT=8000

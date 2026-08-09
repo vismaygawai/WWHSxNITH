@@ -55,7 +55,6 @@ function PasswordInput({
   );
 }
 
-
 function ResetPassword() {
   const nav = useNavigate();
   const [password, setPassword] = useState("");

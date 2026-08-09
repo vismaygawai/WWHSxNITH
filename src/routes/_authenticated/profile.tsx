@@ -12,9 +12,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
   component: ProfilePage,
 });
 
-const AVATAR_PRESETS = [
-  "Felix", "Aneka", "Zack", "Molly", "Jasper", "Willow", "Oliver", "Luna"
-];
+const AVATAR_PRESETS = ["Felix", "Aneka", "Zack", "Molly", "Jasper", "Willow", "Oliver", "Luna"];
 
 function getAvatarUrl(seed: string): string {
   return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
@@ -115,7 +113,7 @@ function ProfilePage() {
           <div className="text-center sm:text-left min-w-0">
             <h2 className="text-xl font-semibold text-white truncate">{user?.name || "Member"}</h2>
             <p className="text-sm text-white/50 truncate mt-0.5">{user?.email}</p>
-            
+
             {isAdmin ? (
               <span className="inline-flex items-center gap-1.5 mt-2 rounded-full bg-amber-500/15 px-3 py-1 text-[11px] font-semibold text-amber-400 ring-1 ring-amber-500/30">
                 <ShieldCheck className="size-3.5" /> Admin • {BRAND_NAME}
@@ -183,7 +181,11 @@ function ProfilePage() {
                 disabled={savingName || nameInput.trim() === user?.name}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-95 transition-opacity disabled:opacity-40"
               >
-                {savingName ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+                {savingName ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Save className="size-4" />
+                )}
                 Save
               </button>
             </div>

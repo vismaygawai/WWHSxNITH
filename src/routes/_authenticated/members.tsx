@@ -29,7 +29,9 @@ function Members() {
       <p className="mt-1.5 text-sm text-white/55">Everyone who's joined the community.</p>
 
       {isLoading ? (
-        <div className="mt-10 flex justify-center"><Loader2 className="size-5 animate-spin text-primary" /></div>
+        <div className="mt-10 flex justify-center">
+          <Loader2 className="size-5 animate-spin text-primary" />
+        </div>
       ) : members.length === 0 ? (
         <p className="mt-10 text-sm text-white/50">No members yet.</p>
       ) : (
@@ -45,7 +47,11 @@ function Members() {
                   isAdmin ? "border-amber-500/30 bg-amber-500/5" : "border-white/10 bg-card"
                 }`}
               >
-                <img src={avatarUrl} alt="" className="size-10 rounded-full object-cover bg-primary/10" />
+                <img
+                  src={avatarUrl}
+                  alt=""
+                  className="size-10 rounded-full object-cover bg-primary/10"
+                />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-white truncate">{m.name}</span>
